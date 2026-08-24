@@ -49,24 +49,4 @@ public static class AAASampleData
             new Account { Id = 7, Code = "5000", Name = "Cost of Goods Sold", Type = "Expense", IsActive = true }
         };
     }
-
-    public static List<Transaction> GetTransactions()
-    {
-        return new List<Transaction>
-        {
-            new Transaction { Id = 1, Reference = "TRX-001", Date = DateTime.Today.AddDays(-5), Type = "Journal", Description = "Initial inventory purchase", TotalAmount = 50000000, Status = "Posted" },
-            new Transaction { Id = 2, Reference = "TRX-002", Date = DateTime.Today.AddDays(-2), Type = "Receipt", Description = "Customer payment", TotalAmount = 12000000, Status = "Posted" }
-        };
-    }
-
-    public static List<JournalEntry> GetJournalEntries()
-    {
-        return new List<JournalEntry>
-        {
-            new JournalEntry { Id = 1, TransactionId = 1, AccountId = 3, Debit = 50000000, Credit = 0, Description = "Inventory purchase" },
-            new JournalEntry { Id = 2, TransactionId = 1, AccountId = 4, Debit = 0, Credit = 50000000, Description = "Accounts payable" },
-            new JournalEntry { Id = 3, TransactionId = 2, AccountId = 1, Debit = 12000000, Credit = 0, Description = "Cash received" },
-            new JournalEntry { Id = 4, TransactionId = 2, AccountId = 2, Debit = 0, Credit = 12000000, Description = "Accounts receivable cleared" }
-        };
-    }
 }

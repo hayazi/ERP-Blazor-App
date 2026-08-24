@@ -1,47 +1,69 @@
+using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.AAA.Models;
+using ERPBlazorApp.AAA.Data;
+using Serilog;
 
 namespace ERPBlazorApp.AAA.Services;
 
 public class AccountService
 {
-    private List<Account> _accounts;
+    private readonly AAADbContext _context;
+    private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<AccountService>();
 
-    public AccountService()
+    public AccountService(AAADbContext context)
     {
-        _accounts = AAASampleData.GetAccounts();
+        _context = context;
     }
 
-    public List<Account> GetAll() => _accounts;
-    public Account? GetById(int id) => _accounts.FirstOrDefault(a => a.Id == id);
-
-    public void Add(Account account)
+    public async Task<List<Account>> GetAllAsync()
     {
-        account.Id = _accounts.Any() ? _accounts.Max(a => a.Id) + 1 : 1;
-        if (account.ParentAccountId.HasValue)
-        {
-            account.ParentAccount = GetById(account.ParentAccountId.Value);
-        }
-        _accounts.Add(account);
+        Logger.Debug("Fetching all accounts");
+        return await _context.Accounts
+            .Include(a => a.ParentAccount)
+            .ToListAsync();
     }
 
-    public void Update(int id, Account account)
+    public async Task<Account?> GetByIdAsync(int id)
     {
-        var existing = GetById(id);
+        Logger.Debug("Fetching account by id {AccountId}", id);
+        return await _context.Accounts
+            .Include(a => a.ParentAccount)
+            .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task AddAsync(Account account)
+    {
+        Logger.Information("Adding account {AccountCode}", account.Code);
+        _context.Accounts.Add(account);
+        await _context.SaveChangesAsync();
+        Logger.Information("Account added with id {AccountId}", account.Id);
+    }
+
+    public async Task UpdateAsync(int id, Account account)
+    {
+        Logger.Information("Updating account {AccountId}", id);
+        var existing = await GetByIdAsync(id);
         if (existing == null) return;
+
         existing.Code = account.Code;
         existing.Name = account.Name;
         existing.Type = account.Type;
         existing.ParentAccountId = account.ParentAccountId;
-        existing.ParentAccount = account.ParentAccountId.HasValue ? GetById(account.ParentAccountId.Value) : null;
         existing.IsActive = account.IsActive;
+
+        await _context.SaveChangesAsync();
+        Logger.Information("Account {AccountId} updated successfully", id);
     }
 
-    public void Delete(int id)
+    public async Task DeleteAsync(int id)
     {
-        var account = GetById(id);
+        Logger.Warning("Deleting account {AccountId}", id);
+        var account = await GetByIdAsync(id);
         if (account != null)
         {
-            _accounts.Remove(account);
+            _context.Accounts.Remove(account);
+            await _context.SaveChangesAsync();
+            Logger.Information("Account {AccountId} deleted", id);
         }
     }
 }

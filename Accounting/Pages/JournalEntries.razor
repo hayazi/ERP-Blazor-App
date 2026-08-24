@@ -1,0 +1,225 @@
+@page "/accounting/journal-entries"
+@using ERPBlazorApp.Accounting.Services
+@using ERPBlazorApp.Accounting.Models
+@using MudBlazor
+@inject JournalEntryService JournalEntryService
+@inject ChartOfAccountService ChartOfAccountService
+
+<PageTitle>Journal Entries</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Journal Entries</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddJournalEntry">Add Journal Entry</MudButton>
+            </div>
+
+            @if (journalEntries == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="JournalEntry" Items="journalEntries" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="JournalEntry" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="JournalEntry" TProperty="string" Property="x => x.Reference" Title="Reference" />
+                        <PropertyColumn T="JournalEntry" TProperty="DateTime" Property="x => x.Date" Title="Date" />
+                        <PropertyColumn T="JournalEntry" TProperty="string" Property="x => x.Description" Title="Description" />
+                        <PropertyColumn T="JournalEntry" TProperty="decimal" Property="x => x.TotalDebit" Title="Total Debit" />
+                        <PropertyColumn T="JournalEntry" TProperty="decimal" Property="x => x.TotalCredit" Title="Total Credit" />
+                        <PropertyColumn T="JournalEntry" TProperty="string" Property="x => x.Status" Title="Status" />
+                        <TemplateColumn T="JournalEntry" Title="Actions">
+                            <CellTemplate Context="entry">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditJournalEntry(entry.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteJournalEntry(entry.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingJournalEntry == null || editingJournalEntry.Id == 0 ? "Add" : "Edit") Journal Entry</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Reference</label>
+                                <input class="form-control" @bind="editingJournalEntry!.Reference" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Date</label>
+                                <input class="form-control" type="date" @bind="editingJournalEntry!.Date" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="editingJournalEntry!.Description"></textarea>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6>Journal Entry Lines</h6>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="AddLine">Add Line</MudButton>
+                    </div>
+
+                    @if (editingJournalEntry!.JournalEntryLines == null || !editingJournalEntry.JournalEntryLines.Any())
+                    {
+                        <p class="text-muted">No lines added.</p>
+                    }
+                    else
+                    {
+                        <MudDataGrid T="JournalEntryLine" Items="editingJournalEntry.JournalEntryLines" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                            <Columns>
+                                <PropertyColumn T="JournalEntryLine" TProperty="int" Property="x => x.AccountId" Title="Account">
+                                    <CellTemplate Context="line">
+                                        <MudSelect T="int" @bind-Value="line.Item.AccountId" Variant="Variant.Outlined" Dense="true" Style="min-width: 150px;">
+                                            <MudSelectItem Value="0">Select Account</MudSelectItem>
+                                            @foreach (var acc in accounts!)
+                                            {
+                                                <MudSelectItem Value="@acc.Id">@acc.Code - @acc.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="JournalEntryLine" TProperty="decimal" Property="x => x.Debit" Title="Debit">
+                                    <CellTemplate Context="line">
+                                        <MudNumericField @bind-Value="line.Item.Debit" Variant="Variant.Outlined" Dense="true" Min="0" Format="N0" Style="min-width: 120px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="JournalEntryLine" TProperty="decimal" Property="x => x.Credit" Title="Credit">
+                                    <CellTemplate Context="line">
+                                        <MudNumericField @bind-Value="line.Item.Credit" Variant="Variant.Outlined" Dense="true" Min="0" Format="N0" Style="min-width: 120px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="JournalEntryLine" TProperty="string" Property="x => x.Description" Title="Description">
+                                    <CellTemplate Context="line">
+                                        <input class="form-control" @bind="line.Item.Description" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <TemplateColumn T="JournalEntryLine" Title="Actions">
+                                    <CellTemplate Context="line">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => RemoveLine(line.Item)" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveJournalEntry">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<JournalEntry>? journalEntries;
+    private List<ChartOfAccount>? accounts;
+    private bool showDialog = false;
+    private JournalEntry? editingJournalEntry;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        journalEntries = await JournalEntryService.GetAllAsync();
+        accounts = await JournalEntryService.GetAccountsAsync();
+    }
+
+    private void AddJournalEntry()
+    {
+        editingJournalEntry = new JournalEntry { Date = DateTime.Today, JournalEntryLines = new List<JournalEntryLine>() };
+        showDialog = true;
+    }
+
+    private void EditJournalEntry(JournalEntry entry)
+    {
+        editingJournalEntry = new JournalEntry
+        {
+            Id = entry.Id,
+            Reference = entry.Reference,
+            Date = entry.Date,
+            Description = entry.Description,
+            Status = entry.Status,
+            JournalEntryLines = entry.JournalEntryLines.Select(l => new JournalEntryLine
+            {
+                Id = l.Id,
+                JournalEntryId = l.JournalEntryId,
+                AccountId = l.AccountId,
+                Debit = l.Debit,
+                Credit = l.Credit,
+                Description = l.Description
+            }).ToList()
+        };
+        showDialog = true;
+    }
+
+    private void AddLine()
+    {
+        if (editingJournalEntry == null) return;
+        if (editingJournalEntry.JournalEntryLines == null)
+        {
+            editingJournalEntry.JournalEntryLines = new List<JournalEntryLine>();
+        }
+        editingJournalEntry.JournalEntryLines.Add(new JournalEntryLine { Debit = 0, Credit = 0 });
+    }
+
+    private void RemoveLine(JournalEntryLine line)
+    {
+        if (editingJournalEntry == null || editingJournalEntry.JournalEntryLines == null) return;
+        editingJournalEntry.JournalEntryLines.Remove(line);
+    }
+
+    private async Task SaveJournalEntry()
+    {
+        if (editingJournalEntry == null) return;
+
+        if (editingJournalEntry.Id == 0)
+        {
+            await JournalEntryService.AddAsync(editingJournalEntry);
+        }
+        else
+        {
+            await JournalEntryService.UpdateAsync(editingJournalEntry.Id, editingJournalEntry);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteJournalEntry(int id)
+    {
+        await JournalEntryService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingJournalEntry = null;
+    }
+}

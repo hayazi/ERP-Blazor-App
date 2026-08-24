@@ -84,14 +84,14 @@
     private bool showDialog = false;
     private Permission? editingPermission;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        permissions = PermissionService.GetAll();
+        permissions = await PermissionService.GetAllAsync();
     }
 
     private void AddPermission()
@@ -113,27 +113,27 @@
         showDialog = true;
     }
 
-    private void SavePermission()
+    private async Task SavePermission()
     {
         if (editingPermission == null) return;
 
         if (editingPermission.Id == 0)
         {
-            PermissionService.Add(editingPermission);
+            await PermissionService.AddAsync(editingPermission);
         }
         else
         {
-            PermissionService.Update(editingPermission.Id, editingPermission);
+            await PermissionService.UpdateAsync(editingPermission.Id, editingPermission);
         }
 
         CloseDialog();
-        LoadData();
+        await LoadData();
     }
 
-    private void DeletePermission(int id)
+    private async Task DeletePermission(int id)
     {
-        PermissionService.Delete(id);
-        LoadData();
+        await PermissionService.DeleteAsync(id);
+        await LoadData();
     }
 
     private void CloseDialog()

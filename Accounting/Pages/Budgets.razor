@@ -1,0 +1,152 @@
+@page "/accounting/budgets"
+@using ERPBlazorApp.Accounting.Services
+@using ERPBlazorApp.Accounting.Models
+@using MudBlazor
+@inject BudgetService BudgetService
+@inject ChartOfAccountService ChartOfAccountService
+@inject FiscalYearService FiscalYearService
+
+<PageTitle>Budgets</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Budgets</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddBudget">Add Budget</MudButton>
+            </div>
+
+            @if (budgets == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Budget" Items="budgets" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="Budget" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Budget" TProperty="string" Property="x => x.Account!.Code" Title="Account Code" />
+                        <PropertyColumn T="Budget" TProperty="string" Property="x => x.Account!.Name" Title="Account Name" />
+                        <PropertyColumn T="Budget" TProperty="decimal" Property="x => x.Amount" Title="Amount" />
+                        <PropertyColumn T="Budget" TProperty="string" Property="x => x.Type" Title="Type" />
+                        <TemplateColumn T="Budget" Title="Actions">
+                            <CellTemplate Context="budget">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditBudget(budget.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteBudget(budget.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingBudget == null ? "Add" : "Edit") Budget</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Account</label>
+                        <select class="form-select" @bind="editingBudget!.AccountId">
+                            <option value="0">Select Account</option>
+                            @foreach (var acc in accounts!)
+                            {
+                                <option value="@acc.Id">@acc.Code - @acc.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input class="form-control" type="number" @bind="editingBudget!.Amount" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" @bind="editingBudget!.Type">
+                            <option value="Revenue">Revenue</option>
+                            <option value="Expense">Expense</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveBudget">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Budget>? budgets;
+    private List<ChartOfAccount>? accounts;
+    private bool showDialog = false;
+    private Budget? editingBudget;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        budgets = await BudgetService.GetAllAsync();
+        accounts = await ChartOfAccountService.GetAllAsync();
+    }
+
+    private void AddBudget()
+    {
+        editingBudget = new Budget();
+        showDialog = true;
+    }
+
+    private void EditBudget(Budget budget)
+    {
+        editingBudget = new Budget
+        {
+            Id = budget.Id,
+            AccountId = budget.AccountId,
+            Amount = budget.Amount,
+            Type = budget.Type
+        };
+        showDialog = true;
+    }
+
+    private async Task SaveBudget()
+    {
+        if (editingBudget == null) return;
+
+        if (editingBudget.Id == 0)
+        {
+            await BudgetService.AddAsync(editingBudget);
+        }
+        else
+        {
+            await BudgetService.UpdateAsync(editingBudget.Id, editingBudget);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteBudget(int id)
+    {
+        await BudgetService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingBudget = null;
+    }
+}

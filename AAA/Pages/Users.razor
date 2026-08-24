@@ -98,14 +98,14 @@
     private bool showDialog = false;
     private User? editingUser;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        users = UserService.GetAll();
+        users = await UserService.GetAllAsync();
     }
 
     private void AddUser()
@@ -128,27 +128,27 @@
         showDialog = true;
     }
 
-    private void SaveUser()
+    private async Task SaveUser()
     {
         if (editingUser == null) return;
 
         if (editingUser.Id == 0)
         {
-            UserService.Add(editingUser);
+            await UserService.AddAsync(editingUser);
         }
         else
         {
-            UserService.Update(editingUser.Id, editingUser);
+            await UserService.UpdateAsync(editingUser.Id, editingUser);
         }
 
         CloseDialog();
-        LoadData();
+        await LoadData();
     }
 
-    private void DeleteUser(int id)
+    private async Task DeleteUser(int id)
     {
-        UserService.Delete(id);
-        LoadData();
+        await UserService.DeleteAsync(id);
+        await LoadData();
     }
 
     private void CloseDialog()

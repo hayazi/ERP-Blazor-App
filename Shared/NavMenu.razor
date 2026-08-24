@@ -100,6 +100,38 @@
                 </div>
             </div>
         </div>
+        <div class="nav-item px-3">
+            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleAccountingSubMenu">
+                <span class="oi oi-book" aria-hidden="true"></span> Accounting
+            </a>
+            <div class="nav-submenu @AccountingNavMenuCssClass">
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="accounting/chart-of-accounts">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> Chart of Accounts
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="accounting/journal-entries">
+                        <span class="oi oi-transfer" aria-hidden="true"></span> Journal Entries
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="accounting/trial-balance">
+                        <span class="oi oi-calculator" aria-hidden="true"></span> Trial Balance
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="accounting/fiscal-years">
+                        <span class="oi oi-calendar" aria-hidden="true"></span> Fiscal Years
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="accounting/budgets">
+                        <span class="oi oi-pie-chart" aria-hidden="true"></span> Budgets
+                    </NavLink>
+                </div>
+            </div>
+        </div>
     </nav>
 </div>
 
@@ -120,6 +152,10 @@
 
     private string? AAANavMenuCssClass => collapseAAASubMenu ? "collapse" : null;
 
+    private bool collapseAccountingSubMenu = true;
+
+    private string? AccountingNavMenuCssClass => collapseAccountingSubMenu ? "collapse" : null;
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
@@ -138,5 +174,10 @@
     private void ToggleAAASubMenu()
     {
         collapseAAASubMenu = !collapseAAASubMenu;
+    }
+
+    private void ToggleAccountingSubMenu()
+    {
+        collapseAccountingSubMenu = !collapseAccountingSubMenu;
     }
 }

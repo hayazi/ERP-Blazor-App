@@ -54,6 +54,26 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXFVzZXJzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/app/ERP-Blazor-App/Accounting/Pages/Budgets.razor]
+build_metadata.AdditionalFiles.TargetPath = QWNjb3VudGluZ1xQYWdlc1xCdWRnZXRzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Accounting/Pages/ChartOfAccounts.razor]
+build_metadata.AdditionalFiles.TargetPath = QWNjb3VudGluZ1xQYWdlc1xDaGFydE9mQWNjb3VudHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Accounting/Pages/FiscalYears.razor]
+build_metadata.AdditionalFiles.TargetPath = QWNjb3VudGluZ1xQYWdlc1xGaXNjYWxZZWFycy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Accounting/Pages/JournalEntries.razor]
+build_metadata.AdditionalFiles.TargetPath = QWNjb3VudGluZ1xQYWdlc1xKb3VybmFsRW50cmllcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Accounting/Pages/TrialBalances.razor]
+build_metadata.AdditionalFiles.TargetPath = QWNjb3VudGluZ1xQYWdlc1xUcmlhbEJhbGFuY2VzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/app/ERP-Blazor-App/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

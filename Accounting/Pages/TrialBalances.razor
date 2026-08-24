@@ -1,0 +1,50 @@
+@page "/accounting/trial-balance"
+@using ERPBlazorApp.Accounting.Services
+@using ERPBlazorApp.Accounting.Models
+@using MudBlazor
+@inject TrialBalanceService TrialBalanceService
+
+<PageTitle>Trial Balance</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">Trial Balance</MudText>
+
+            @if (trialBalance == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="TrialBalance" Items="trialBalance" Filterable="true" ShowColumnOptions="true" Sortable="true" ReadOnly="true">
+                    <Columns>
+                        <PropertyColumn T="TrialBalance" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="TrialBalance" TProperty="string" Property="x => x.Account!.Code" Title="Account Code" />
+                        <PropertyColumn T="TrialBalance" TProperty="string" Property="x => x.Account!.Name" Title="Account Name" />
+                        <PropertyColumn T="TrialBalance" TProperty="decimal" Property="x => x.Debit" Title="Debit" />
+                        <PropertyColumn T="TrialBalance" TProperty="decimal" Property="x => x.Credit" Title="Credit" />
+                        <PropertyColumn T="TrialBalance" TProperty="decimal" Property="x => x.Balance" Title="Balance" />
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<TrialBalance>? trialBalance;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        trialBalance = await TrialBalanceService.GetAllAsync();
+    }
+}

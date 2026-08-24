@@ -1,33 +1,61 @@
+using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.AAA.Models;
+using ERPBlazorApp.AAA.Data;
+using Serilog;
 
 namespace ERPBlazorApp.AAA.Services;
 
 public class UserService
 {
-    private List<User> _users;
-    private List<UserRole> _userRoles;
+    private readonly AAADbContext _context;
+    private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<UserService>();
 
-    public UserService()
+    public UserService(AAADbContext context)
     {
-        _users = AAASampleData.GetUsers();
-        _userRoles = new List<UserRole>();
+        _context = context;
     }
 
-    public List<User> GetAll() => _users;
-    public User? GetById(int id) => _users.FirstOrDefault(u => u.Id == id);
-    public User? GetByUsername(string username) => _users.FirstOrDefault(u => u.Username == username);
-
-    public void Add(User user)
+    public async Task<List<User>> GetAllAsync()
     {
-        user.Id = _users.Any() ? _users.Max(u => u.Id) + 1 : 1;
-        user.CreatedAt = DateTime.Now;
-        _users.Add(user);
+        Logger.Debug("Fetching all users");
+        return await _context.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .ToListAsync();
     }
 
-    public void Update(int id, User user)
+    public async Task<User?> GetByIdAsync(int id)
     {
-        var existing = GetById(id);
+        Logger.Debug("Fetching user by id {UserId}", id);
+        return await _context.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<User?> GetByUsernameAsync(string username)
+    {
+        Logger.Debug("Fetching user by username {Username}", username);
+        return await _context.Users
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Username == username);
+    }
+
+    public async Task AddAsync(User user)
+    {
+        Logger.Information("Adding user {Username}", user.Username);
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        Logger.Information("User added with id {UserId}", user.Id);
+    }
+
+    public async Task UpdateAsync(int id, User user)
+    {
+        Logger.Information("Updating user {UserId}", id);
+        var existing = await GetByIdAsync(id);
         if (existing == null) return;
+
         existing.Username = user.Username;
         existing.Email = user.Email;
         existing.FirstName = user.FirstName;
@@ -37,39 +65,57 @@ public class UserService
         {
             existing.PasswordHash = user.PasswordHash;
         }
+
+        await _context.SaveChangesAsync();
+        Logger.Information("User {UserId} updated successfully", id);
     }
 
-    public void Delete(int id)
+    public async Task DeleteAsync(int id)
     {
-        var user = GetById(id);
+        Logger.Warning("Deleting user {UserId}", id);
+        var user = await GetByIdAsync(id);
         if (user != null)
         {
-            _users.Remove(user);
-            _userRoles.RemoveAll(ur => ur.UserId == id);
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            Logger.Information("User {UserId} deleted", id);
         }
     }
 
-    public List<Role> GetUserRoles(int userId)
+    public async Task<List<Role>> GetUserRolesAsync(int userId)
     {
-        return _userRoles.Where(ur => ur.UserId == userId)
+        Logger.Debug("Fetching roles for user {UserId}", userId);
+        return await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
             .Select(ur => ur.Role!)
-            .ToList();
+            .ToListAsync();
     }
 
-    public void AssignRole(int userId, int roleId)
+    public async Task AssignRoleAsync(int userId, int roleId)
     {
-        if (_userRoles.Any(ur => ur.UserId == userId && ur.RoleId == roleId)) return;
-        _userRoles.Add(new UserRole
+        Logger.Information("Assigning role {RoleId} to user {UserId}", roleId, userId);
+        var existing = await _context.UserRoles
+            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        if (existing != null) return;
+
+        _context.UserRoles.Add(new UserRole
         {
-            Id = _userRoles.Any() ? _userRoles.Max(ur => ur.Id) + 1 : 1,
             UserId = userId,
             RoleId = roleId,
             AssignedAt = DateTime.Now
         });
+        await _context.SaveChangesAsync();
     }
 
-    public void RemoveRole(int userId, int roleId)
+    public async Task RemoveRoleAsync(int userId, int roleId)
     {
-        _userRoles.RemoveAll(ur => ur.UserId == userId && ur.RoleId == roleId);
+        Logger.Information("Removing role {RoleId} from user {UserId}", roleId, userId);
+        var userRole = await _context.UserRoles
+            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        if (userRole != null)
+        {
+            _context.UserRoles.Remove(userRole);
+            await _context.SaveChangesAsync();
+        }
     }
 }

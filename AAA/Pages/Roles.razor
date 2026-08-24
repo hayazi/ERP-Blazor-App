@@ -84,14 +84,14 @@
     private bool showDialog = false;
     private Role? editingRole;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        roles = RoleService.GetAll();
+        roles = await RoleService.GetAllAsync();
     }
 
     private void AddRole()
@@ -112,27 +112,27 @@
         showDialog = true;
     }
 
-    private void SaveRole()
+    private async Task SaveRole()
     {
         if (editingRole == null) return;
 
         if (editingRole.Id == 0)
         {
-            RoleService.Add(editingRole);
+            await RoleService.AddAsync(editingRole);
         }
         else
         {
-            RoleService.Update(editingRole.Id, editingRole);
+            await RoleService.UpdateAsync(editingRole.Id, editingRole);
         }
 
         CloseDialog();
-        LoadData();
+        await LoadData();
     }
 
-    private void DeleteRole(int id)
+    private async Task DeleteRole(int id)
     {
-        RoleService.Delete(id);
-        LoadData();
+        await RoleService.DeleteAsync(id);
+        await LoadData();
     }
 
     private void CloseDialog()

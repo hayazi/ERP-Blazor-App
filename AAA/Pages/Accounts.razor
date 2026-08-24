@@ -105,14 +105,14 @@
     private bool showDialog = false;
     private Account? editingAccount;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        accounts = AccountService.GetAll();
+        accounts = await AccountService.GetAllAsync();
     }
 
     private void AddAccount()
@@ -135,27 +135,27 @@
         showDialog = true;
     }
 
-    private void SaveAccount()
+    private async Task SaveAccount()
     {
         if (editingAccount == null) return;
 
         if (editingAccount.Id == 0)
         {
-            AccountService.Add(editingAccount);
+            await AccountService.AddAsync(editingAccount);
         }
         else
         {
-            AccountService.Update(editingAccount.Id, editingAccount);
+            await AccountService.UpdateAsync(editingAccount.Id, editingAccount);
         }
 
         CloseDialog();
-        LoadData();
+        await LoadData();
     }
 
-    private void DeleteAccount(int id)
+    private async Task DeleteAccount(int id)
     {
-        AccountService.Delete(id);
-        LoadData();
+        await AccountService.DeleteAsync(id);
+        await LoadData();
     }
 
     private void CloseDialog()

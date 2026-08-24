@@ -4,6 +4,10 @@ using ERPBlazorApp.Data;
 using MudBlazor;
 using MudBlazor.Services;
 using ERPBlazorApp.HumanResource.Data;
+using ERPBlazorApp.AAA.Data;
+using ERPBlazorApp.AAA.Services;
+using ERPBlazorApp.Accounting.Data;
+using ERPBlazorApp.Accounting.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -20,6 +24,10 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddDbContext<HumanResourceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddDbContext<ERPBlazorApp.Inventory.Data.InventoryDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
+builder.Services.AddDbContext<AAADbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
+builder.Services.AddDbContext<AccountingDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -39,9 +47,19 @@ builder.Services.AddScoped<ERPBlazorApp.AAA.Services.UserService>();
 builder.Services.AddScoped<ERPBlazorApp.AAA.Services.RoleService>();
 builder.Services.AddScoped<ERPBlazorApp.AAA.Services.PermissionService>();
 builder.Services.AddScoped<ERPBlazorApp.AAA.Services.AccountService>();
-builder.Services.AddScoped<ERPBlazorApp.AAA.Services.TransactionService>();
+builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.ChartOfAccountService>();
+builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.JournalEntryService>();
+builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.FiscalYearService>();
+builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.BudgetService>();
+builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.TrialBalanceService>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await AAADataSeeder.SeedAsync(scope.ServiceProvider);
+    await AccountingDataSeeder.SeedAsync(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
