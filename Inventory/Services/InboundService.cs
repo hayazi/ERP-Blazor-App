@@ -1,0 +1,80 @@
+using ERPBlazorApp.Inventory.Models;
+
+namespace ERPBlazorApp.Inventory.Services;
+
+public class InboundService
+{
+    private List<Inbound> _inbounds;
+    private List<InboundDetail> _details;
+    private List<Product> _products;
+    private List<Supplier> _suppliers;
+
+    public InboundService()
+    {
+        _suppliers = InventorySampleData.GetSuppliers();
+        _products = InventorySampleData.GetProducts();
+        _inbounds = InventorySampleData.GetInbounds();
+        _details = InventorySampleData.GetInboundDetails();
+
+        foreach (var inbound in _inbounds)
+        {
+            inbound.Supplier = _suppliers.FirstOrDefault(s => s.Id == inbound.SupplierId);
+            inbound.Details = _details.Where(d => d.InboundId == inbound.Id).ToList();
+            foreach (var detail in inbound.Details)
+            {
+                detail.Inbound = inbound;
+                detail.Product = _products.FirstOrDefault(p => p.Id == detail.ProductId);
+            }
+        }
+    }
+
+    public List<Inbound> GetAll() => _inbounds;
+    public Inbound? GetById(int id) => _inbounds.FirstOrDefault(i => i.Id == id);
+    public List<InboundDetail> GetDetails(int inboundId) => _details.Where(d => d.InboundId == inboundId).ToList();
+    public List<Product> GetProducts() => _products;
+    public List<Supplier> GetSuppliers() => _suppliers;
+
+    public void Add(Inbound inbound)
+    {
+        inbound.Id = _inbounds.Any() ? _inbounds.Max(i => i.Id) + 1 : 1;
+        inbound.Supplier = _suppliers.FirstOrDefault(s => s.Id == inbound.SupplierId);
+        _inbounds.Add(inbound);
+
+        foreach (var detail in inbound.Details)
+        {
+            detail.Id = _details.Any() ? _details.Max(d => d.Id) + 1 : 1;
+            detail.InboundId = inbound.Id;
+            detail.Inbound = inbound;
+            detail.Product = _products.FirstOrDefault(p => p.Id == detail.ProductId);
+            _details.Add(detail);
+
+            var product = _products.FirstOrDefault(p => p.Id == detail.ProductId);
+            if (product != null)
+            {
+                product.CurrentStock += detail.Quantity;
+            }
+        }
+    }
+
+    public void Update(int id, Inbound inbound)
+    {
+        var existing = GetById(id);
+        if (existing == null) return;
+        existing.Reference = inbound.Reference;
+        existing.Date = inbound.Date;
+        existing.SupplierId = inbound.SupplierId;
+        existing.Supplier = _suppliers.FirstOrDefault(s => s.Id == inbound.SupplierId);
+        existing.Status = inbound.Status;
+        existing.Notes = inbound.Notes;
+    }
+
+    public void Delete(int id)
+    {
+        var inbound = GetById(id);
+        if (inbound != null)
+        {
+            _details.RemoveAll(d => d.InboundId == id);
+            _inbounds.Remove(inbound);
+        }
+    }
+}

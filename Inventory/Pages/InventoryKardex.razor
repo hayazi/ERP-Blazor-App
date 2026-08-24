@@ -1,0 +1,70 @@
+@page "/inventory/kardex"
+@using ERPBlazorApp.Inventory.Services
+@using ERPBlazorApp.Inventory.Models
+@using MudBlazor
+@inject KardexService KardexService
+@inject ProductService ProductService
+
+<PageTitle>Kardex</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Kardex</MudText>
+                <MudSelect T="int" Label="Filter by Product" @bind-Value="selectedProductId" Variant="Variant.Outlined" Style="min-width: 250px;">
+                    <MudSelectItem Value="0">All Products</MudSelectItem>
+                    @foreach (var prod in products!)
+                    {
+                        <MudSelectItem Value="@prod.Id">@prod.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+
+            @if (kardex == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Kardex" Items="filteredKardex" Filterable="true" ShowColumnOptions="true" Sortable="true">
+                    <Columns>
+                        <PropertyColumn T="Kardex" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Kardex" TProperty="string" Property="x => x.Product!.Name" Title="Product" />
+                        <PropertyColumn T="Kardex" TProperty="DateTime" Property="x => x.Date" Title="Date" />
+                        <PropertyColumn T="Kardex" TProperty="string" Property="x => x.Type" Title="Type" />
+                        <PropertyColumn T="Kardex" TProperty="int" Property="x => x.ReferenceId" Title="Reference ID" />
+                        <PropertyColumn T="Kardex" TProperty="int" Property="x => x.Quantity" Title="Quantity" />
+                        <PropertyColumn T="Kardex" TProperty="int" Property="x => x.Balance" Title="Balance" />
+                        <PropertyColumn T="Kardex" TProperty="string" Property="x => x.Notes" Title="Notes" />
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<Kardex>? kardex;
+    private List<Product>? products;
+    private int selectedProductId = 0;
+    private IEnumerable<Kardex> filteredKardex => kardex == null ? Enumerable.Empty<Kardex>() : (selectedProductId == 0 ? kardex : kardex.Where(k => k.ProductId == selectedProductId));
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        kardex = KardexService.GetAll();
+        products = ProductService.GetAll();
+        foreach (var item in kardex)
+        {
+            item.Product = products.FirstOrDefault(p => p.Id == item.ProductId);
+        }
+    }
+}

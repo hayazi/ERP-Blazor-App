@@ -1,0 +1,187 @@
+@page "/hr/employees"
+@using ERPBlazorApp.HumanResource.Services
+@using ERPBlazorApp.HumanResource.Models
+@using MudBlazor
+@inject EmployeeService EmployeeService
+@inject DepartmentService DepartmentService
+
+<PageTitle>Employees</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Employees</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddEmployee">Add Employee</MudButton>
+            </div>
+
+            @if (employees == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Employee" Items="employees" Filterable="true" ShowFilterPanel="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell" Style="border: 1px solid #ccc; border-radius: 4px;">
+                    <Columns>
+                        <PropertyColumn T="Employee" TProperty="int" Property="x => x.Id" Title="ID" Sortable="true" />
+                        <PropertyColumn T="Employee" TProperty="string" Property="x => x.FirstName" Title="First Name" Sortable="true" />
+                        <PropertyColumn T="Employee" TProperty="string" Property="x => x.LastName" Title="Last Name" Sortable="true" />
+                        <PropertyColumn T="Employee" TProperty="string" Property="x => x.Email" Title="Email" Sortable="true" />
+                        <PropertyColumn T="Employee" TProperty="string" Property="x => x.Phone" Title="Phone" />
+                        <PropertyColumn T="Employee" TProperty="string" Property="x => x.Position" Title="Position" Sortable="true" />
+                        <PropertyColumn T="Employee" TProperty="string" Property="x => x.Department!.Name" Title="Department" />
+                        <PropertyColumn T="Employee" TProperty="DateTime" Property="x => x.HireDate" Title="Hire Date" Sortable="true" />
+                        <PropertyColumn T="Employee" TProperty="decimal" Property="x => x.Salary" Title="Salary (IRR)" Sortable="true" />
+                        <PropertyColumn T="Employee" TProperty="bool" Property="x => x.IsActive" Title="Status">
+                            <CellTemplate Context="emp">
+                                <MudBadge Color="emp.Item.IsActive ? Color.Success : Color.Error" Content="@(emp.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Employee" Title="Actions">
+                            <CellTemplate Context="emp">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditEmployee(emp.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteEmployee(emp.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingEmployee == null ? "Add" : "Edit") Employee</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input class="form-control" @bind="editingEmployee!.FirstName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input class="form-control" @bind="editingEmployee!.LastName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input class="form-control" type="email" @bind="editingEmployee!.Email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input class="form-control" @bind="editingEmployee!.Phone" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Position</label>
+                        <input class="form-control" @bind="editingEmployee!.Position" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <select class="form-select" @bind="editingEmployee!.DepartmentId">
+                            <option value="0">Select Department</option>
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept.Id">@dept.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hire Date</label>
+                        <input class="form-control" type="date" @bind="editingEmployee!.HireDate" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Salary (IRR)</label>
+                        <input class="form-control" type="number" @bind="editingEmployee!.Salary" />
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" @bind="editingEmployee!.IsActive" id="activeCheck" />
+                        <label class="form-check-label" for="activeCheck">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveEmployee">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Employee>? employees;
+    private List<Department>? departments;
+    private bool showDialog = false;
+    private Employee? editingEmployee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        employees = await EmployeeService.GetAllAsync();
+        departments = await EmployeeService.GetDepartmentsAsync();
+    }
+
+    private void AddEmployee()
+    {
+        editingEmployee = new Employee { HireDate = DateTime.Today, IsActive = true };
+        showDialog = true;
+    }
+
+    private void EditEmployee(Employee emp)
+    {
+        editingEmployee = new Employee
+        {
+            Id = emp.Id,
+            FirstName = emp.FirstName,
+            LastName = emp.LastName,
+            Email = emp.Email,
+            Phone = emp.Phone,
+            Position = emp.Position,
+            DepartmentId = emp.DepartmentId,
+            HireDate = emp.HireDate,
+            Salary = emp.Salary,
+            IsActive = emp.IsActive
+        };
+        showDialog = true;
+    }
+
+    private async Task SaveEmployee()
+    {
+        if (editingEmployee == null) return;
+
+        if (editingEmployee.Id == 0)
+        {
+            await EmployeeService.AddAsync(editingEmployee);
+        }
+        else
+        {
+            await EmployeeService.UpdateAsync(editingEmployee.Id, editingEmployee);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteEmployee(int id)
+    {
+        await EmployeeService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingEmployee = null;
+    }
+}

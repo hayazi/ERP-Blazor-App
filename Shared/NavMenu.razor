@@ -1,0 +1,101 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">ERPBlazorApp</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <!-- <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="fetchdata">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+            </NavLink>
+        </div> -->
+        <div class="nav-item px-3">
+            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleHRSubMenu">
+                <span class="oi oi-people" aria-hidden="true"></span> Human Resource
+            </a>
+            <div class="nav-submenu @HrNavMenuCssClass">
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="hr/employees">
+                        <span class="oi oi-person" aria-hidden="true"></span> Employees
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="hr/departments">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> Departments
+                    </NavLink>
+                </div>
+            </div>
+        </div>
+        <div class="nav-item px-3">
+            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleInventorySubMenu">
+                <span class="oi oi-box" aria-hidden="true"></span> Inventory
+            </a>
+            <div class="nav-submenu @InventoryNavMenuCssClass">
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="inventory/products">
+                        <span class="oi oi-tag" aria-hidden="true"></span> Products
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="inventory/inbounds">
+                        <span class="oi oi-arrow-right" aria-hidden="true"></span> Inbounds
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="inventory/outbounds">
+                        <span class="oi oi-arrow-left" aria-hidden="true"></span> Outbounds
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="inventory/kardex">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> Kardex
+                    </NavLink>
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private bool collapseHRSubMenu = true;
+
+    private string? HrNavMenuCssClass => collapseHRSubMenu ? "collapse" : null;
+
+    private bool collapseInventorySubMenu = true;
+
+    private string? InventoryNavMenuCssClass => collapseInventorySubMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void ToggleHRSubMenu()
+    {
+        collapseHRSubMenu = !collapseHRSubMenu;
+    }
+
+    private void ToggleInventorySubMenu()
+    {
+        collapseInventorySubMenu = !collapseInventorySubMenu;
+    }
+}

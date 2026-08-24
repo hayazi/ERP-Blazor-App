@@ -1,0 +1,209 @@
+@page "/inventory/outbounds"
+@using ERPBlazorApp.Inventory.Services
+@using ERPBlazorApp.Inventory.Models
+@using MudBlazor
+@inject OutboundService OutboundService
+@inject ProductService ProductService
+@inject CustomerService CustomerService
+
+<PageTitle>Outbounds</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Outbounds</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddOutbound">Add Outbound</MudButton>
+            </div>
+
+            @if (outbounds == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Outbound" Items="outbounds" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="Outbound" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Outbound" TProperty="string" Property="x => x.Reference" Title="Reference" />
+                        <PropertyColumn T="Outbound" TProperty="DateTime" Property="x => x.Date" Title="Date" />
+                        <PropertyColumn T="Outbound" TProperty="string" Property="x => x.Customer!.Name" Title="Customer" />
+                        <PropertyColumn T="Outbound" TProperty="string" Property="x => x.Status" Title="Status" />
+                        <PropertyColumn T="Outbound" TProperty="string" Property="x => x.Notes" Title="Notes" />
+                        <TemplateColumn T="Outbound" Title="Actions">
+                            <CellTemplate Context="outb">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditOutbound(outb.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteOutbound(outb.Item.Id)" />
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => ViewDetails(outb.Item.Id)">Details</MudButton>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingOutbound == null ? "Add" : "Edit") Outbound</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Reference</label>
+                        <input class="form-control" @bind="editingOutbound!.Reference" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input class="form-control" type="date" @bind="editingOutbound!.Date" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Customer</label>
+                        <select class="form-select" @bind="editingOutbound!.CustomerId">
+                            <option value="0">Select Customer</option>
+                            @foreach (var cust in customers)
+                            {
+                                <option value="@cust.Id">@cust.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" @bind="editingOutbound!.Status">
+                            <option value="Pending">Pending</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" @bind="editingOutbound!.Notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveOutbound">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showDetailsDialog && selectedOutbound != null)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Outbound Details - @selectedOutbound.Reference</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDetailsDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <MudDataGrid T="OutboundDetail" Items="selectedOutbound.Details" Filterable="true">
+                        <Columns>
+                            <PropertyColumn T="OutboundDetail" TProperty="int" Property="x => x.Id" Title="ID" />
+                            <PropertyColumn T="OutboundDetail" TProperty="string" Property="x => x.Product!.Name" Title="Product" />
+                            <PropertyColumn T="OutboundDetail" TProperty="int" Property="x => x.Quantity" Title="Quantity" />
+                            <PropertyColumn T="OutboundDetail" TProperty="decimal" Property="x => x.UnitPrice" Title="Unit Price" />
+                            <PropertyColumn T="OutboundDetail" TProperty="decimal" Property="x => x.TotalPrice" Title="Total Price" />
+                        </Columns>
+                    </MudDataGrid>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDetailsDialog">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Outbound>? outbounds;
+    private List<Product>? products;
+    private List<Customer>? customers;
+    private bool showDialog = false;
+    private bool showDetailsDialog = false;
+    private Outbound? editingOutbound;
+    private Outbound? selectedOutbound;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        outbounds = OutboundService.GetAll();
+        products = ProductService.GetAll();
+        customers = CustomerService.GetAll();
+    }
+
+    private void AddOutbound()
+    {
+        editingOutbound = new Outbound { Date = DateTime.Today };
+        showDialog = true;
+    }
+
+    private void EditOutbound(Outbound outbound)
+    {
+        editingOutbound = new Outbound
+        {
+            Id = outbound.Id,
+            Reference = outbound.Reference,
+            Date = outbound.Date,
+            CustomerId = outbound.CustomerId,
+            Status = outbound.Status,
+            Notes = outbound.Notes
+        };
+        showDialog = true;
+    }
+
+    private void SaveOutbound()
+    {
+        if (editingOutbound == null) return;
+
+        if (editingOutbound.Id == 0)
+        {
+            OutboundService.Add(editingOutbound);
+        }
+        else
+        {
+            OutboundService.Update(editingOutbound.Id, editingOutbound);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeleteOutbound(int id)
+    {
+        OutboundService.Delete(id);
+        LoadData();
+    }
+
+    private void ViewDetails(int id)
+    {
+        selectedOutbound = OutboundService.GetById(id);
+        showDetailsDialog = true;
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingOutbound = null;
+    }
+
+    private void CloseDetailsDialog()
+    {
+        showDetailsDialog = false;
+        selectedOutbound = null;
+    }
+}

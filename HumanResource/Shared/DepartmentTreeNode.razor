@@ -1,0 +1,38 @@
+@using ERPBlazorApp.HumanResource.Models
+@inject DepartmentService DepartmentService
+
+<div class="tree-node">
+    <div class="tree-node-content d-flex align-items-center">
+        <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" Size="Size.Small" />
+        <MudText Typo="Typo.body1" Style="cursor:pointer" @onclick="() => OnSelect.InvokeAsync(Node)">@Node.Name</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => OnEdit.InvokeAsync(Node)" />
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => OnDelete.InvokeAsync(Node.Id)" />
+    </div>
+    @if (Node.SubDepartments != null && Node.SubDepartments.Any())
+    {
+        <div class="tree-node-children" style="padding-left: 1.5rem;">
+            @foreach (var child in Node.SubDepartments)
+            {
+                <DepartmentTreeNode Node="@child" Level="@(Level + 1)" OnSelect="OnSelect" OnEdit="OnEdit" OnDelete="OnDelete" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Department Node { get; set; } = default!;
+
+    [Parameter]
+    public int Level { get; set; }
+
+    [Parameter]
+    public EventCallback<Department> OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback<Department> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnDelete { get; set; }
+}

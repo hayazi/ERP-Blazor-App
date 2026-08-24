@@ -1,0 +1,57 @@
+﻿@inherits LayoutComponentBase
+@using MudBlazor
+
+<PageTitle>ERPBlazorApp</PageTitle>
+
+<MudThemeProvider Theme="MyTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private MudTheme MyTheme = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#1b6ec2",
+            Secondary = "#6c757d",
+            AppbarBackground = "#ffffff",
+            Background = "#f8f9fa",
+            Surface = "#ffffff",
+            TextPrimary = "#212529",
+            TextSecondary = "#6c757d",
+            ActionDefault = "#1b6ec2",
+            ActionDisabled = "#adb5bd",
+            Divider = "#dee2e6"
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#1b6ec2",
+            Secondary = "#6c757d",
+            AppbarBackground = "#1e1e2e",
+            Background = "#121212",
+            Surface = "#1e1e2e",
+            TextPrimary = "#e0e0e0",
+            TextSecondary = "#a0a0a0",
+            ActionDefault = "#1b6ec2",
+            ActionDisabled = "#adb5bd",
+            Divider = "#333333"
+        }
+    };
+}

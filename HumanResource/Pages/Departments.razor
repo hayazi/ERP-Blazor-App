@@ -1,0 +1,202 @@
+@page "/hr/departments"
+@using ERPBlazorApp.HumanResource.Services
+@using ERPBlazorApp.HumanResource.Models
+@using ERPBlazorApp.HumanResource.Shared
+@using MudBlazor
+@inject DepartmentService DepartmentService
+@inject EmployeeService EmployeeService
+
+<PageTitle>Departments</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12" md="5">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Department Structure</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="CreateDepartment">Create Department</MudButton>
+            </div>
+            @if (departments == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                @foreach (var dept in departments)
+                {
+                    <DepartmentTreeNode Node="@dept" OnSelect="OnDepartmentSelected" OnEdit="EditDepartment" OnDelete="DeleteDepartment" />
+                }
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="7">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                @(selectedDepartment == null ? "Select a department to view employees" : $"Employees in {selectedDepartment.Name}")
+            </MudText>
+            @if (selectedDepartment != null)
+            {
+                <MudTable T="Employee" Items="departmentEmployees" Dense="true" Hover="true" Bordered="true">
+                    <HeaderContent>
+                        <MudTh>ID</MudTh>
+                        <MudTh>Full Name</MudTh>
+                        <MudTh>Email</MudTh>
+                        <MudTh>Position</MudTh>
+                        <MudTh>Hire Date</MudTh>
+                        <MudTh>Salary (IRR)</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="emp">
+                        <MudTd>@emp.Id</MudTd>
+                        <MudTd>@emp.FirstName @emp.LastName</MudTd>
+                        <MudTd>@emp.Email</MudTd>
+                        <MudTd>@emp.Position</MudTd>
+                        <MudTd>@emp.HireDate.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>@emp.Salary.ToString("N0")</MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager PageSizeOptions="new int[]{5, 10, 20}" />
+                    </PagerContent>
+                </MudTable>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingDepartment == null ? "Add" : editingDepartment.Id == 0 && editingDepartment.ParentDepartmentId.HasValue ? "Add Subdepartment" : "Edit") Department</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="editingDepartment!.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input class="form-control" @bind="editingDepartment!.Description" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Parent Department</label>
+                        <select class="form-select" @bind="editingDepartment!.ParentDepartmentId">
+                            <option value="">None</option>
+                            @foreach (var dept in availableDepartments!)
+                            {
+                                <option value="@dept.Id">@dept.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Manager</label>
+                        <select class="form-select" @bind="editingDepartment!.ManagerId">
+                            <option value="">Select Manager</option>
+                            @foreach (var emp in employees)
+                            {
+                                <option value="@emp.Id">@emp.FirstName @emp.LastName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveDepartment">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Department>? departments;
+    private List<Department>? availableDepartments;
+    private List<Employee>? employees;
+    private List<Employee> departmentEmployees = new();
+    private Department? selectedDepartment;
+    private bool showDialog = false;
+    private Department? editingDepartment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        departments = await DepartmentService.GetAllRootsAsync();
+        availableDepartments = await DepartmentService.GetAllAsync();
+        employees = await EmployeeService.GetAllAsync();
+        if (selectedDepartment != null)
+        {
+            var allEmployees = await EmployeeService.GetAllAsync();
+            departmentEmployees = allEmployees.Where(e => e.DepartmentId == selectedDepartment.Id).ToList();
+        }
+    }
+
+    private void CreateDepartment()
+    {
+        editingDepartment = new Department
+        {
+            ParentDepartmentId = selectedDepartment?.Id
+        };
+        showDialog = true;
+    }
+
+    private void EditDepartment(Department dept)
+    {
+        editingDepartment = new Department
+        {
+            Id = dept.Id,
+            Name = dept.Name,
+            Description = dept.Description,
+            ParentDepartmentId = dept.ParentDepartmentId,
+            ManagerId = dept.ManagerId
+        };
+        showDialog = true;
+    }
+
+    private async Task OnDepartmentSelected(Department dept)
+    {
+        selectedDepartment = dept;
+        var allEmployees = await EmployeeService.GetAllAsync();
+        departmentEmployees = allEmployees.Where(e => e.DepartmentId == selectedDepartment.Id).ToList();
+        StateHasChanged();
+    }
+
+    private async Task SaveDepartment()
+    {
+        if (editingDepartment == null) return;
+
+        if (editingDepartment.Id == 0)
+        {
+            await DepartmentService.AddAsync(editingDepartment);
+        }
+        else
+        {
+            await DepartmentService.UpdateAsync(editingDepartment.Id, editingDepartment);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteDepartment(int id)
+    {
+        await DepartmentService.DeleteAsync(id);
+        if (selectedDepartment?.Id == id)
+        {
+            selectedDepartment = null;
+            departmentEmployees.Clear();
+        }
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingDepartment = null;
+    }
+}

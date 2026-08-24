@@ -1,0 +1,183 @@
+@page "/inventory/products"
+@using ERPBlazorApp.Inventory.Services
+@using ERPBlazorApp.Inventory.Models
+@using MudBlazor
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+
+<PageTitle>Products</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Products</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddProduct">Add Product</MudButton>
+            </div>
+
+            @if (products == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Product" Items="products" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="Product" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Product" TProperty="string" Property="x => x.Name" Title="Name" />
+                        <PropertyColumn T="Product" TProperty="string" Property="x => x.SKU" Title="SKU" />
+                        <PropertyColumn T="Product" TProperty="string" Property="x => x.Unit" Title="Unit" />
+                        <PropertyColumn T="Product" TProperty="decimal" Property="x => x.PurchasePrice" Title="Purchase Price" />
+                        <PropertyColumn T="Product" TProperty="decimal" Property="x => x.SalePrice" Title="Sale Price" />
+                        <PropertyColumn T="Product" TProperty="string" Property="x => x.Category!.Name" Title="Category" />
+                        <PropertyColumn T="Product" TProperty="int" Property="x => x.CurrentStock" Title="Current Stock" />
+                        <PropertyColumn T="Product" TProperty="int" Property="x => x.MinStock" Title="Min Stock" />
+                        <PropertyColumn T="Product" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="prod">
+                                <MudBadge Color="prod.Item.IsActive ? Color.Success : Color.Error" Content="@(prod.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Product" Title="Actions">
+                            <CellTemplate Context="prod">
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteProduct(prod.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingProduct == null ? "Add" : "Edit") Product</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="editingProduct!.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">SKU</label>
+                        <input class="form-control" @bind="editingProduct!.SKU" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unit</label>
+                        <input class="form-control" @bind="editingProduct!.Unit" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Purchase Price</label>
+                        <input class="form-control" type="number" @bind="editingProduct!.PurchasePrice" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sale Price</label>
+                        <input class="form-control" type="number" @bind="editingProduct!.SalePrice" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" @bind="editingProduct!.CategoryId">
+                            <option value="0">Select Category</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Min Stock</label>
+                        <input class="form-control" type="number" @bind="editingProduct!.MinStock" />
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" @bind="editingProduct!.IsActive" id="activeCheck" />
+                        <label class="form-check-label" for="activeCheck">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveProduct">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Product>? products;
+    private List<Category>? categories;
+    private bool showDialog = false;
+    private Product? editingProduct;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        products = ProductService.GetAll();
+        categories = ProductService.GetCategories();
+    }
+
+    private void AddProduct()
+    {
+        editingProduct = new Product { IsActive = true };
+        showDialog = true;
+    }
+
+    private void EditProduct(Product prod)
+    {
+        editingProduct = new Product
+        {
+            Id = prod.Id,
+            Name = prod.Name,
+            Description = prod.Description,
+            SKU = prod.SKU,
+            Unit = prod.Unit,
+            PurchasePrice = prod.PurchasePrice,
+            SalePrice = prod.SalePrice,
+            CategoryId = prod.CategoryId,
+            CurrentStock = prod.CurrentStock,
+            MinStock = prod.MinStock,
+            IsActive = prod.IsActive
+        };
+        showDialog = true;
+    }
+
+    private void SaveProduct()
+    {
+        if (editingProduct == null) return;
+
+        if (editingProduct.Id == 0)
+        {
+            ProductService.Add(editingProduct);
+        }
+        else
+        {
+            ProductService.Update(editingProduct.Id, editingProduct);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeleteProduct(int id)
+    {
+        ProductService.Delete(id);
+        LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingProduct = null;
+    }
+}

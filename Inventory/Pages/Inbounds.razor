@@ -1,0 +1,209 @@
+@page "/inventory/inbounds"
+@using ERPBlazorApp.Inventory.Services
+@using ERPBlazorApp.Inventory.Models
+@using MudBlazor
+@inject InboundService InboundService
+@inject ProductService ProductService
+@inject SupplierService SupplierService
+
+<PageTitle>Inbounds</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Inbounds</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddInbound">Add Inbound</MudButton>
+            </div>
+
+            @if (inbounds == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Inbound" Items="inbounds" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="Inbound" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Inbound" TProperty="string" Property="x => x.Reference" Title="Reference" />
+                        <PropertyColumn T="Inbound" TProperty="DateTime" Property="x => x.Date" Title="Date" />
+                        <PropertyColumn T="Inbound" TProperty="string" Property="x => x.Supplier!.Name" Title="Supplier" />
+                        <PropertyColumn T="Inbound" TProperty="string" Property="x => x.Status" Title="Status" />
+                        <PropertyColumn T="Inbound" TProperty="string" Property="x => x.Notes" Title="Notes" />
+                        <TemplateColumn T="Inbound" Title="Actions">
+                            <CellTemplate Context="inb">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditInbound(inb.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteInbound(inb.Item.Id)" />
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => ViewDetails(inb.Item.Id)">Details</MudButton>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingInbound == null ? "Add" : "Edit") Inbound</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Reference</label>
+                        <input class="form-control" @bind="editingInbound!.Reference" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input class="form-control" type="date" @bind="editingInbound!.Date" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Supplier</label>
+                        <select class="form-select" @bind="editingInbound!.SupplierId">
+                            <option value="0">Select Supplier</option>
+                            @foreach (var sup in suppliers)
+                            {
+                                <option value="@sup.Id">@sup.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" @bind="editingInbound!.Status">
+                            <option value="Pending">Pending</option>
+                            <option value="Received">Received</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" @bind="editingInbound!.Notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveInbound">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showDetailsDialog && selectedInbound != null)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Inbound Details - @selectedInbound.Reference</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDetailsDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <MudDataGrid T="InboundDetail" Items="selectedInbound.Details" Filterable="true">
+                        <Columns>
+                            <PropertyColumn T="InboundDetail" TProperty="int" Property="x => x.Id" Title="ID" />
+                            <PropertyColumn T="InboundDetail" TProperty="string" Property="x => x.Product!.Name" Title="Product" />
+                            <PropertyColumn T="InboundDetail" TProperty="int" Property="x => x.Quantity" Title="Quantity" />
+                            <PropertyColumn T="InboundDetail" TProperty="decimal" Property="x => x.UnitPrice" Title="Unit Price" />
+                            <PropertyColumn T="InboundDetail" TProperty="decimal" Property="x => x.TotalPrice" Title="Total Price" />
+                        </Columns>
+                    </MudDataGrid>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDetailsDialog">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Inbound>? inbounds;
+    private List<Product>? products;
+    private List<Supplier>? suppliers;
+    private bool showDialog = false;
+    private bool showDetailsDialog = false;
+    private Inbound? editingInbound;
+    private Inbound? selectedInbound;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        inbounds = InboundService.GetAll();
+        products = ProductService.GetAll();
+        suppliers = SupplierService.GetAll();
+    }
+
+    private void AddInbound()
+    {
+        editingInbound = new Inbound { Date = DateTime.Today };
+        showDialog = true;
+    }
+
+    private void EditInbound(Inbound inbound)
+    {
+        editingInbound = new Inbound
+        {
+            Id = inbound.Id,
+            Reference = inbound.Reference,
+            Date = inbound.Date,
+            SupplierId = inbound.SupplierId,
+            Status = inbound.Status,
+            Notes = inbound.Notes
+        };
+        showDialog = true;
+    }
+
+    private void SaveInbound()
+    {
+        if (editingInbound == null) return;
+
+        if (editingInbound.Id == 0)
+        {
+            InboundService.Add(editingInbound);
+        }
+        else
+        {
+            InboundService.Update(editingInbound.Id, editingInbound);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeleteInbound(int id)
+    {
+        InboundService.Delete(id);
+        LoadData();
+    }
+
+    private void ViewDetails(int id)
+    {
+        selectedInbound = InboundService.GetById(id);
+        showDetailsDialog = true;
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingInbound = null;
+    }
+
+    private void CloseDetailsDialog()
+    {
+        showDetailsDialog = false;
+        selectedInbound = null;
+    }
+}
