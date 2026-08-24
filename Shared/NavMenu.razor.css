@@ -50,19 +50,63 @@
     color: white;
 }
 
+.nav-link-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.nav-link-wrapper .nav-link {
+    flex-grow: 1;
+}
+
+.nav-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 3rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.nav-chevron.collapsed {
+    transform: rotate(-90deg);
+}
+
+.sidebar.collapsed .nav-item ::deep a {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar.collapsed .nav-submenu {
+    display: none;
+}
+
+.sidebar.collapsed .navbar-brand {
+    display: none;
+}
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;
     }
 
-    .collapse {
-        /* Never collapse the sidebar for wide screens */
+    .nav-scrollable {
+        display: block !important;
+        height: calc(100vh - 3.5rem);
+        overflow-y: auto;
+    }
+    
+    .nav-submenu {
         display: block;
     }
     
-    .nav-scrollable {
-        /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
-        overflow-y: auto;
+    .nav-submenu.collapse {
+        display: none;
+    }
+    
+    .nav-submenu:not(.collapse) {
+        display: block;
     }
 }

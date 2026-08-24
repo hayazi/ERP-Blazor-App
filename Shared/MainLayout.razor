@@ -9,8 +9,8 @@
 <MudSnackbarProvider />
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
+    <div class="sidebar @(collapseSidebar ? "collapsed" : null)">
+        <NavMenu Collapsed="@collapseSidebar" OnSidebarToggle="ToggleSidebar" />
     </div>
 
     <main>
@@ -25,6 +25,8 @@
 </div>
 
 @code {
+    private bool collapseSidebar = false;
+
     private MudTheme MyTheme = new()
     {
         PaletteLight = new PaletteLight()
@@ -54,4 +56,9 @@
             Divider = "#333333"
         }
     };
+
+    private void ToggleSidebar()
+    {
+        collapseSidebar = !collapseSidebar;
+    }
 }

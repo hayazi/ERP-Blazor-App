@@ -51,10 +51,15 @@ main[b-rxm7xntzlm] {
     }
 
     .sidebar[b-rxm7xntzlm] {
-        width: 250px;
+        width: 300px;
         height: 100vh;
         position: sticky;
         top: 0;
+        transition: width 0.3s ease;
+    }
+
+    .sidebar.collapsed[b-rxm7xntzlm] {
+        width: 60px;
     }
 
     .top-row[b-rxm7xntzlm] {

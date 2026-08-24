@@ -51,10 +51,15 @@ main {
     }
 
     .sidebar {
-        width: 250px;
+        width: 300px;
         height: 100vh;
         position: sticky;
         top: 0;
+        transition: width 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+        width: 60px;
     }
 
     .top-row {

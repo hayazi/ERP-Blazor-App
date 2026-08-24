@@ -1,8 +1,11 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">ERPBlazorApp</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
+        @if (!Collapsed)
+        {
+            <a class="navbar-brand" href="">ERPBlazorApp</a>
+        }
+        <button title="Toggle sidebar" class="btn btn-link text-white" @onclick="ToggleSidebar">
+            <span class="oi @(Collapsed ? "oi-menu" : "oi-arrow-left")" aria-hidden="true"></span>
         </button>
     </div>
 </div>
@@ -11,123 +14,155 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
+                <span class="oi oi-home" aria-hidden="true"></span> @if (!Collapsed) { <span>Home</span> }
             </NavLink>
         </div>
         <!-- <div class="nav-item px-3">
             <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+                <span class="oi oi-plus" aria-hidden="true"></span> @if (!Collapsed) { <span>Counter</span> }
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+                <span class="oi oi-list-rich" aria-hidden="true"></span> @if (!Collapsed) { <span>Fetch data</span> }
             </NavLink>
         </div> -->
         <div class="nav-item px-3">
-            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleHRSubMenu">
-                <span class="oi oi-people" aria-hidden="true"></span> Human Resource
-            </a>
+            <div class="nav-link-wrapper">
+                <a class="nav-link flex-grow-1" href="javascript:void(0)" @onclick="ToggleHRSubMenu">
+                    <span class="oi oi-people" aria-hidden="true"></span> @if (!Collapsed) { <span>Human Resource</span> }
+                </a>
+                @if (!Collapsed)
+                {
+                    <span class="nav-chevron @(collapseHRSubMenu ? "collapsed" : null)" @onclick="ToggleHRSubMenu">
+                        <span class="oi oi-chevron-bottom" aria-hidden="true"></span>
+                    </span>
+                }
+            </div>
             <div class="nav-submenu @HrNavMenuCssClass">
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="hr/employees">
-                        <span class="oi oi-person" aria-hidden="true"></span> Employees
+                        <span class="oi oi-person" aria-hidden="true"></span> @if (!Collapsed) { <span>Employees</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="hr/departments">
-                        <span class="oi oi-briefcase" aria-hidden="true"></span> Departments
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> @if (!Collapsed) { <span>Departments</span> }
                     </NavLink>
                 </div>
             </div>
         </div>
         <div class="nav-item px-3">
-            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleInventorySubMenu">
-                <span class="oi oi-box" aria-hidden="true"></span> Inventory
-            </a>
+            <div class="nav-link-wrapper">
+                <a class="nav-link flex-grow-1" href="javascript:void(0)" @onclick="ToggleInventorySubMenu">
+                    <span class="oi oi-box" aria-hidden="true"></span> @if (!Collapsed) { <span>Inventory</span> }
+                </a>
+                @if (!Collapsed)
+                {
+                    <span class="nav-chevron @(collapseInventorySubMenu ? "collapsed" : null)" @onclick="ToggleInventorySubMenu">
+                        <span class="oi oi-chevron-bottom" aria-hidden="true"></span>
+                    </span>
+                }
+            </div>
             <div class="nav-submenu @InventoryNavMenuCssClass">
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="inventory/products">
-                        <span class="oi oi-tag" aria-hidden="true"></span> Products
+                        <span class="oi oi-tag" aria-hidden="true"></span> @if (!Collapsed) { <span>Products</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="inventory/inbounds">
-                        <span class="oi oi-arrow-right" aria-hidden="true"></span> Inbounds
+                        <span class="oi oi-arrow-right" aria-hidden="true"></span> @if (!Collapsed) { <span>Inbounds</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="inventory/outbounds">
-                        <span class="oi oi-arrow-left" aria-hidden="true"></span> Outbounds
+                        <span class="oi oi-arrow-left" aria-hidden="true"></span> @if (!Collapsed) { <span>Outbounds</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="inventory/kardex">
-                        <span class="oi oi-list-rich" aria-hidden="true"></span> Kardex
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> @if (!Collapsed) { <span>Kardex</span> }
                     </NavLink>
                 </div>
             </div>
         </div>
         <div class="nav-item px-3">
-            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleAAASubMenu">
-                <span class="oi oi-lock-locked" aria-hidden="true"></span> AAA
-            </a>
+            <div class="nav-link-wrapper">
+                <a class="nav-link flex-grow-1" href="javascript:void(0)" @onclick="ToggleAAASubMenu">
+                    <span class="oi oi-lock-locked" aria-hidden="true"></span> @if (!Collapsed) { <span>AAA</span> }
+                </a>
+                @if (!Collapsed)
+                {
+                    <span class="nav-chevron @(collapseAAASubMenu ? "collapsed" : null)" @onclick="ToggleAAASubMenu">
+                        <span class="oi oi-chevron-bottom" aria-hidden="true"></span>
+                    </span>
+                }
+            </div>
             <div class="nav-submenu @AAANavMenuCssClass">
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="aaa/users">
-                        <span class="oi oi-person" aria-hidden="true"></span> Users
+                        <span class="oi oi-person" aria-hidden="true"></span> @if (!Collapsed) { <span>Users</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="aaa/roles">
-                        <span class="oi oi-briefcase" aria-hidden="true"></span> Roles
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> @if (!Collapsed) { <span>Roles</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="aaa/permissions">
-                        <span class="oi oi-key" aria-hidden="true"></span> Permissions
+                        <span class="oi oi-key" aria-hidden="true"></span> @if (!Collapsed) { <span>Permissions</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="aaa/accounts">
-                        <span class="oi oi-book" aria-hidden="true"></span> Accounts
+                        <span class="oi oi-book" aria-hidden="true"></span> @if (!Collapsed) { <span>Accounts</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="aaa/transactions">
-                        <span class="oi oi-transfer" aria-hidden="true"></span> Transactions
+                        <span class="oi oi-transfer" aria-hidden="true"></span> @if (!Collapsed) { <span>Transactions</span> }
                     </NavLink>
                 </div>
             </div>
         </div>
         <div class="nav-item px-3">
-            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleAccountingSubMenu">
-                <span class="oi oi-book" aria-hidden="true"></span> Accounting
-            </a>
+            <div class="nav-link-wrapper">
+                <a class="nav-link flex-grow-1" href="javascript:void(0)" @onclick="ToggleAccountingSubMenu">
+                    <span class="oi oi-book" aria-hidden="true"></span> @if (!Collapsed) { <span>Accounting</span> }
+                </a>
+                @if (!Collapsed)
+                {
+                    <span class="nav-chevron @(collapseAccountingSubMenu ? "collapsed" : null)" @onclick="ToggleAccountingSubMenu">
+                        <span class="oi oi-chevron-bottom" aria-hidden="true"></span>
+                    </span>
+                }
+            </div>
             <div class="nav-submenu @AccountingNavMenuCssClass">
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="accounting/chart-of-accounts">
-                        <span class="oi oi-list-rich" aria-hidden="true"></span> Chart of Accounts
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> @if (!Collapsed) { <span>Chart of Accounts</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="accounting/journal-entries">
-                        <span class="oi oi-transfer" aria-hidden="true"></span> Journal Entries
+                        <span class="oi oi-transfer" aria-hidden="true"></span> @if (!Collapsed) { <span>Journal Entries</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="accounting/trial-balance">
-                        <span class="oi oi-calculator" aria-hidden="true"></span> Trial Balance
+                        <span class="oi oi-calculator" aria-hidden="true"></span> @if (!Collapsed) { <span>Trial Balance</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="accounting/fiscal-years">
-                        <span class="oi oi-calendar" aria-hidden="true"></span> Fiscal Years
+                        <span class="oi oi-calendar" aria-hidden="true"></span> @if (!Collapsed) { <span>Fiscal Years</span> }
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="accounting/budgets">
-                        <span class="oi oi-pie-chart" aria-hidden="true"></span> Budgets
+                        <span class="oi oi-pie-chart" aria-hidden="true"></span> @if (!Collapsed) { <span>Budgets</span> }
                     </NavLink>
                 </div>
             </div>
@@ -136,6 +171,12 @@
 </div>
 
 @code {
+    [Parameter]
+    public bool Collapsed { get; set; }
+
+    [Parameter]
+    public EventCallback OnSidebarToggle { get; set; }
+
     private bool collapseNavMenu = true;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
@@ -159,6 +200,11 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task ToggleSidebar()
+    {
+        await OnSidebarToggle.InvokeAsync();
     }
 
     private void ToggleHRSubMenu()

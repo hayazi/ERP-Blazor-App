@@ -348,3 +348,24 @@ CREATE TABLE [Attendance] (
 [17:14:37 WRN] Failed to determine the https port for redirect.
 [17:14:37 INF] Retrieved 1 root departments
 [17:14:38 INF] Retrieved 1 root departments
+[17:15:48 WRN] Failed to determine the https port for redirect.
+[17:15:49 INF] Retrieved 1 root departments
+[17:15:49 INF] Retrieved 1 root departments
+[17:20:46 WRN] Failed to determine the https port for redirect.
+[17:22:58 WRN] Failed to determine the https port for redirect.
+[17:25:15 WRN] Failed to determine the https port for redirect.
+[17:26:57 WRN] Failed to determine the https port for redirect.
+[17:27:27 WRN] Failed to determine the https port for redirect.
+[17:28:52 WRN] Failed to determine the https port for redirect.
+[17:29:30 WRN] Failed to determine the https port for redirect.
+[17:30:07 WRN] Failed to determine the https port for redirect.
+[17:31:28 WRN] Failed to determine the https port for redirect.
+[17:31:55 WRN] Failed to determine the https port for redirect.
+[17:32:18 WRN] Failed to determine the https port for redirect.
+[17:38:14 WRN] Failed to determine the https port for redirect.
+[17:38:29 INF] Retrieved 1 root departments
+[17:41:22 WRN] Failed to determine the https port for redirect.
+[17:46:03 WRN] Failed to determine the https port for redirect.
+[17:48:42 WRN] Failed to determine the https port for redirect.
+[17:48:52 INF] Retrieved 1 root departments
+[17:51:50 WRN] Failed to determine the https port for redirect.

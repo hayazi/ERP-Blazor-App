@@ -52,10 +52,15 @@ main[b-rxm7xntzlm] {
     }
 
     .sidebar[b-rxm7xntzlm] {
-        width: 250px;
+        width: 300px;
         height: 100vh;
         position: sticky;
         top: 0;
+        transition: width 0.3s ease;
+    }
+
+    .sidebar.collapsed[b-rxm7xntzlm] {
+        width: 60px;
     }
 
     .top-row[b-rxm7xntzlm] {
@@ -122,19 +127,63 @@ main[b-rxm7xntzlm] {
     color: white;
 }
 
+.nav-link-wrapper[b-qcmejm6t21] {
+    display: flex;
+    align-items: center;
+}
+
+.nav-link-wrapper .nav-link[b-qcmejm6t21] {
+    flex-grow: 1;
+}
+
+.nav-chevron[b-qcmejm6t21] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 3rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.nav-chevron.collapsed[b-qcmejm6t21] {
+    transform: rotate(-90deg);
+}
+
+.sidebar.collapsed .nav-item[b-qcmejm6t21]  a {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar.collapsed .nav-submenu[b-qcmejm6t21] {
+    display: none;
+}
+
+.sidebar.collapsed .navbar-brand[b-qcmejm6t21] {
+    display: none;
+}
+
 @media (min-width: 641px) {
     .navbar-toggler[b-qcmejm6t21] {
         display: none;
     }
 
-    .collapse[b-qcmejm6t21] {
-        /* Never collapse the sidebar for wide screens */
+    .nav-scrollable[b-qcmejm6t21] {
+        display: block !important;
+        height: calc(100vh - 3.5rem);
+        overflow-y: auto;
+    }
+    
+    .nav-submenu[b-qcmejm6t21] {
         display: block;
     }
     
-    .nav-scrollable[b-qcmejm6t21] {
-        /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
-        overflow-y: auto;
+    .nav-submenu.collapse[b-qcmejm6t21] {
+        display: none;
+    }
+    
+    .nav-submenu:not(.collapse)[b-qcmejm6t21] {
+        display: block;
     }
 }
