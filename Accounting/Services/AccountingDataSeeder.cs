@@ -45,26 +45,60 @@ public static class AccountingDataSeeder
         context.AccountingPeriods.AddRange(periods);
         await context.SaveChangesAsync();
 
+        var parentAccounts = new List<ChartOfAccount>
+        {
+            new ChartOfAccount { Code = "100", Name = "Current Assets", Type = "Asset", IsActive = true },
+            new ChartOfAccount { Code = "200", Name = "Current Liabilities", Type = "Liability", IsActive = true },
+            new ChartOfAccount { Code = "400", Name = "Operating Revenue", Type = "Revenue", IsActive = true },
+            new ChartOfAccount { Code = "500", Name = "Operating Expenses", Type = "Expense", IsActive = true }
+        };
+
+        context.ChartOfAccounts.AddRange(parentAccounts);
+        await context.SaveChangesAsync();
+
+        var currentAssetsId = parentAccounts.First(a => a.Code == "100").Id;
+        var currentLiabilitiesId = parentAccounts.First(a => a.Code == "200").Id;
+        var operatingRevenueId = parentAccounts.First(a => a.Code == "400").Id;
+        var operatingExpensesId = parentAccounts.First(a => a.Code == "500").Id;
+
         var chartOfAccounts = new List<ChartOfAccount>
         {
-            new ChartOfAccount { Code = "1000", Name = "Cash", Type = "Asset", IsActive = true },
-            new ChartOfAccount { Code = "1100", Name = "Accounts Receivable", Type = "Asset", IsActive = true },
-            new ChartOfAccount { Code = "1200", Name = "Inventory", Type = "Asset", IsActive = true },
-            new ChartOfAccount { Code = "1300", Name = "Prepaid Expenses", Type = "Asset", IsActive = true },
+            new ChartOfAccount { Code = "1000", Name = "Cash", Type = "Asset", IsActive = true, ParentAccountId = currentAssetsId },
+            new ChartOfAccount { Code = "1100", Name = "Accounts Receivable", Type = "Asset", IsActive = true, ParentAccountId = currentAssetsId },
+            new ChartOfAccount { Code = "1200", Name = "Inventory", Type = "Asset", IsActive = true, ParentAccountId = currentAssetsId },
+            new ChartOfAccount { Code = "1300", Name = "Prepaid Expenses", Type = "Asset", IsActive = true, ParentAccountId = currentAssetsId },
             new ChartOfAccount { Code = "1500", Name = "Fixed Assets", Type = "Asset", IsActive = true },
-            new ChartOfAccount { Code = "2000", Name = "Accounts Payable", Type = "Liability", IsActive = true },
-            new ChartOfAccount { Code = "2100", Name = "Accrued Expenses", Type = "Liability", IsActive = true },
+            new ChartOfAccount { Code = "2000", Name = "Accounts Payable", Type = "Liability", IsActive = true, ParentAccountId = currentLiabilitiesId },
+            new ChartOfAccount { Code = "2100", Name = "Accrued Expenses", Type = "Liability", IsActive = true, ParentAccountId = currentLiabilitiesId },
             new ChartOfAccount { Code = "2500", Name = "Long Term Debt", Type = "Liability", IsActive = true },
             new ChartOfAccount { Code = "3000", Name = "Equity", Type = "Equity", IsActive = true },
-            new ChartOfAccount { Code = "4000", Name = "Sales Revenue", Type = "Revenue", IsActive = true },
-            new ChartOfAccount { Code = "4100", Name = "Service Revenue", Type = "Revenue", IsActive = true },
-            new ChartOfAccount { Code = "5000", Name = "Cost of Goods Sold", Type = "Expense", IsActive = true },
-            new ChartOfAccount { Code = "5100", Name = "Salaries Expense", Type = "Expense", IsActive = true },
-            new ChartOfAccount { Code = "5200", Name = "Rent Expense", Type = "Expense", IsActive = true },
-            new ChartOfAccount { Code = "5300", Name = "Utilities Expense", Type = "Expense", IsActive = true }
+            new ChartOfAccount { Code = "4000", Name = "Sales Revenue", Type = "Revenue", IsActive = true, ParentAccountId = operatingRevenueId },
+            new ChartOfAccount { Code = "4100", Name = "Service Revenue", Type = "Revenue", IsActive = true, ParentAccountId = operatingRevenueId },
+            new ChartOfAccount { Code = "5000", Name = "Cost of Goods Sold", Type = "Expense", IsActive = true, ParentAccountId = operatingExpensesId },
+            new ChartOfAccount { Code = "5100", Name = "Salaries Expense", Type = "Expense", IsActive = true, ParentAccountId = operatingExpensesId },
+            new ChartOfAccount { Code = "5200", Name = "Rent Expense", Type = "Expense", IsActive = true, ParentAccountId = operatingExpensesId },
+            new ChartOfAccount { Code = "5300", Name = "Utilities Expense", Type = "Expense", IsActive = true, ParentAccountId = operatingExpensesId }
         };
 
         context.ChartOfAccounts.AddRange(chartOfAccounts);
+        await context.SaveChangesAsync();
+
+        var currentAssets = chartOfAccounts.First(a => a.Code == "1000");
+        var currentLiabilities = chartOfAccounts.First(a => a.Code == "2000");
+        var operatingRevenue = chartOfAccounts.First(a => a.Code == "4000");
+        var operatingExpenses = chartOfAccounts.First(a => a.Code == "5000");
+
+        chartOfAccounts.First(a => a.Code == "1100").ParentAccountId = currentAssets.Id;
+        chartOfAccounts.First(a => a.Code == "1200").ParentAccountId = currentAssets.Id;
+        chartOfAccounts.First(a => a.Code == "1300").ParentAccountId = currentAssets.Id;
+        chartOfAccounts.First(a => a.Code == "1500").ParentAccountId = currentAssets.Id;
+        chartOfAccounts.First(a => a.Code == "2100").ParentAccountId = currentLiabilities.Id;
+        chartOfAccounts.First(a => a.Code == "2500").ParentAccountId = currentLiabilities.Id;
+        chartOfAccounts.First(a => a.Code == "4100").ParentAccountId = operatingRevenue.Id;
+        chartOfAccounts.First(a => a.Code == "5100").ParentAccountId = operatingExpenses.Id;
+        chartOfAccounts.First(a => a.Code == "5200").ParentAccountId = operatingExpenses.Id;
+        chartOfAccounts.First(a => a.Code == "5300").ParentAccountId = operatingExpenses.Id;
+
         await context.SaveChangesAsync();
 
         var journalEntries = new List<JournalEntry>

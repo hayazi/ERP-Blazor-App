@@ -20,6 +20,7 @@ public class ChartOfAccountService
         Logger.Debug("Fetching all chart of accounts");
         return await _context.ChartOfAccounts
             .Include(c => c.ParentAccount)
+            .Include(c => c.ChildAccounts)
             .ToListAsync();
     }
 

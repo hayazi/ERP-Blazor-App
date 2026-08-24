@@ -290,3 +290,37 @@ CREATE TABLE [Attendance] (
 [15:52:44 INF] Chart of account 14 updated successfully
 [15:52:50 INF] Updating chart of account 15
 [15:52:50 INF] Chart of account 15 updated successfully
+[16:03:06 WRN] Failed to determine the https port for redirect.
+[16:07:07 WRN] Failed to determine the https port for redirect.
+[16:07:14 INF] Retrieved 1 root departments
+[16:12:16 WRN] Failed to determine the https port for redirect.
+[16:12:48 INF] Updating chart of account 13
+[16:12:48 INF] Chart of account 13 updated successfully
+[16:12:55 INF] Updating chart of account 14
+[16:12:55 INF] Chart of account 14 updated successfully
+[16:13:00 INF] Updating chart of account 15
+[16:13:00 INF] Chart of account 15 updated successfully
+[16:13:07 INF] Updating chart of account 11
+[16:13:07 INF] Chart of account 11 updated successfully
+[16:13:17 INF] Updating chart of account 7
+[16:13:17 INF] Chart of account 7 updated successfully
+[16:13:25 INF] Updating chart of account 2
+[16:13:25 INF] Chart of account 2 updated successfully
+[16:13:30 INF] Updating chart of account 3
+[16:13:30 INF] Chart of account 3 updated successfully
+[16:13:36 INF] Updating chart of account 4
+[16:13:36 INF] Chart of account 4 updated successfully
+[16:13:47 INF] Updating chart of account 8
+[16:13:47 INF] Chart of account 8 updated successfully
+[16:13:58 INF] Updating chart of account 5
+[16:13:58 INF] Chart of account 5 updated successfully
+[16:14:17 INF] Updating chart of account 16
+[16:14:17 INF] Chart of account 16 updated successfully
+[16:14:22 INF] Updating chart of account 17
+[16:14:22 INF] Chart of account 17 updated successfully
+[16:14:32 INF] Updating chart of account 18
+[16:14:32 INF] Chart of account 18 updated successfully
+[16:14:37 INF] Updating chart of account 19
+[16:14:37 INF] Chart of account 19 updated successfully
+[16:14:41 INF] Updating chart of account 9
+[16:14:41 INF] Chart of account 9 updated successfully

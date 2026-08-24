@@ -74,6 +74,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QWNjb3VudGluZ1xQYWdlc1xUcmlhbEJhbGFuY2VzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/app/ERP-Blazor-App/Accounting/Shared/ChartOfAccountTreeNode.razor]
+build_metadata.AdditionalFiles.TargetPath = QWNjb3VudGluZ1xTaGFyZWRcQ2hhcnRPZkFjY291bnRUcmVlTm9kZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/app/ERP-Blazor-App/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

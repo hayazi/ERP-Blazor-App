@@ -1,0 +1,38 @@
+@using ERPBlazorApp.Accounting.Models
+@inject ChartOfAccountService ChartOfAccountService
+
+<div class="tree-node">
+    <div class="tree-node-content d-flex align-items-center">
+        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Class="mr-2" Size="Size.Small" />
+        <MudText Typo="Typo.body1" Style="cursor:pointer" @onclick="() => OnSelect.InvokeAsync(Node)">
+            <strong>@Node.Code</strong> - @Node.Name
+        </MudText>
+        <MudSpacer />
+        <MudBadge Color="Node.IsActive ? Color.Success : Color.Error" Content="@(Node.IsActive ? "Active" : "Inactive")" Class="me-2" />
+        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => OnEdit.InvokeAsync(Node)" />
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => OnDelete.InvokeAsync(Node.Id)" />
+    </div>
+    @if (Node.ChildAccounts != null && Node.ChildAccounts.Any())
+    {
+        <div class="tree-node-children" style="padding-left: 1.5rem;">
+            @foreach (var child in Node.ChildAccounts)
+            {
+                <ChartOfAccountTreeNode Node="@child" OnSelect="OnSelect" OnEdit="OnEdit" OnDelete="OnDelete" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public ChartOfAccount Node { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<ChartOfAccount> OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback<ChartOfAccount> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnDelete { get; set; }
+}
