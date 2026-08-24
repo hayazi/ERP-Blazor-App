@@ -1,0 +1,30 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@inject NavigationManager NavigationManager
+
+<MudSelect T="string" @bind-Value="selectedLanguage" Label="@Localizer["Language"]" Variant="Variant.Outlined" Dense="true" SelectedValuesChanged="OnLanguageChanged" Class="mt-2">
+    <MudSelectItem Value="@("en")">English</MudSelectItem>
+    <MudSelectItem Value="@("fa")">فارسی</MudSelectItem>
+</MudSelect>
+
+@code {
+    [Parameter]
+    public string SelectedLanguage { get; set; } = "en";
+
+    private string selectedLanguage = "en";
+
+    protected override void OnInitialized()
+    {
+        selectedLanguage = SelectedLanguage;
+    }
+
+    private void OnLanguageChanged(IEnumerable<string> values)
+    {
+        var culture = values.FirstOrDefault() ?? "en";
+        var uri = new Uri(NavigationManager.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        queryParams.Set("culture", culture);
+        var newUri = uri.GetLeftPart(UriPartial.Path) + "?" + queryParams.ToString();
+        NavigationManager.NavigateTo(newUri, true);
+    }
+}

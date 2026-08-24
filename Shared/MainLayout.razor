@@ -11,6 +11,9 @@
 <div class="page">
     <div class="sidebar @(collapseSidebar ? "collapsed" : null)">
         <NavMenu Collapsed="@collapseSidebar" OnSidebarToggle="ToggleSidebar" />
+        <div class="px-3 pb-3">
+            <LanguageSwitcher />
+        </div>
     </div>
 
     <main>

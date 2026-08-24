@@ -122,6 +122,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/app/ERP-Blazor-App/Shared/LanguageSwitcher.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXExhbmd1YWdlU3dpdGNoZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/app/ERP-Blazor-App/Shared/SurveyPrompt.razor]
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFN1cnZleVByb21wdC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -144,4 +148,12 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/app/ERP-Blazor-App/Pages/_Host.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0hvc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Resources/SharedResource.resx]
+build_metadata.AdditionalFiles.TargetPath = Resources\SharedResource.resx
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Resources/SharedResource.fa.resx]
+build_metadata.AdditionalFiles.TargetPath = Resources\SharedResource.fa.resx
 build_metadata.AdditionalFiles.CssScope = 

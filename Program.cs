@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Localization;
 using ERPBlazorApp.Data;
 using MudBlazor;
 using MudBlazor.Services;
@@ -10,6 +11,8 @@ using ERPBlazorApp.Accounting.Data;
 using ERPBlazorApp.Accounting.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +24,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddDbContext<HumanResourceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddDbContext<ERPBlazorApp.Inventory.Data.InventoryDbContext>(options =>
@@ -74,6 +78,17 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("en"),
+    SupportedCultures = new List<CultureInfo> { new CultureInfo("en"), new CultureInfo("fa") },
+    SupportedUICultures = new List<CultureInfo> { new CultureInfo("en"), new CultureInfo("fa") },
+    RequestCultureProviders = new List<IRequestCultureProvider>
+    {
+        new ERPBlazorApp.QueryStringCultureProvider()
+    }
+});
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Home" xml:space="preserve">
+    <value>خانه</value>
+  </data>
+  <data name="HumanResource" xml:space="preserve">
+    <value>منابع انسانی</value>
+  </data>
+  <data name="Employees" xml:space="preserve">
+    <value>کارکنان</value>
+  </data>
+  <data name="Departments" xml:space="preserve">
+    <value>بخش‌ها</value>
+  </data>
+  <data name="Inventory" xml:space="preserve">
+    <value>انبار</value>
+  </data>
+  <data name="Products" xml:space="preserve">
+    <value>محصولات</value>
+  </data>
+  <data name="Inbounds" xml:space="preserve">
+    <value>ورودی‌ها</value>
+  </data>
+  <data name="Outbounds" xml:space="preserve">
+    <value>خروجی‌ها</value>
+  </data>
+  <data name="Kardex" xml:space="preserve">
+    <value>کاردکس</value>
+  </data>
+  <data name="AAA" xml:space="preserve">
+    <value>مدیریت کاربران</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>کاربران</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>نقش‌ها</value>
+  </data>
+  <data name="Permissions" xml:space="preserve">
+    <value>مجوزها</value>
+  </data>
+  <data name="Accounting" xml:space="preserve">
+    <value>حسابداری</value>
+  </data>
+  <data name="ChartOfAccounts" xml:space="preserve">
+    <value>جدول حساب‌ها</value>
+  </data>
+  <data name="JournalEntries" xml:space="preserve">
+    <value>دفتر روزنامه</value>
+  </data>
+  <data name="TrialBalance" xml:space="preserve">
+    <value>تراز آزمایشی</value>
+  </data>
+  <data name="FiscalYears" xml:space="preserve">
+    <value>سال‌های مالی</value>
+  </data>
+  <data name="Budgets" xml:space="preserve">
+    <value>بودجه‌ها</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>افزودن</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>ویرایش</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>ذخیره</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>انصراف</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>فعال</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>غیرفعال</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>جستجو</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>فیلتر</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>خروجی</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>زبان</value>
+  </data>
+</root>

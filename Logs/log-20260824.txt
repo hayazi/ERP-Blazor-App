@@ -369,3 +369,5 @@ CREATE TABLE [Attendance] (
 [17:48:42 WRN] Failed to determine the https port for redirect.
 [17:48:52 INF] Retrieved 1 root departments
 [17:51:50 WRN] Failed to determine the https port for redirect.
+[18:07:07 WRN] Failed to determine the https port for redirect.
+[18:07:18 INF] Retrieved 1 root departments

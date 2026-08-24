@@ -205,3 +205,9 @@ D:\app\ERP-Blazor-App\obj\Debug\net10.0\ERPBlazorApp.genruntimeconfig.cache
 D:\app\ERP-Blazor-App\obj\Debug\net10.0\ref\ERPBlazorApp.dll
 D:\app\ERP-Blazor-App\obj\Debug\net10.0\compressed\vaueetarbv-{0}-9p9byep76o-9p9byep76o.gz
 D:\app\ERP-Blazor-App\obj\Debug\net10.0\compressed\qkdt66p5ij-{0}-9p9byep76o-9p9byep76o.gz
+D:\app\ERP-Blazor-App\obj\Debug\net10.0\ERPBlazorApp.Resources.SharedResource.resources
+D:\app\ERP-Blazor-App\obj\Debug\net10.0\ERPBlazorApp.Resources.SharedResource.fa.resources
+D:\app\ERP-Blazor-App\obj\Debug\net10.0\ERPBlazorApp.csproj.GenerateResource.cache
+D:\app\ERP-Blazor-App\bin\Debug\net10.0\fa\ERPBlazorApp.resources.dll
+D:\app\ERP-Blazor-App\obj\Debug\net10.0\fa\ERPBlazorApp.resources.cs
+D:\app\ERP-Blazor-App\obj\Debug\net10.0\fa\ERPBlazorApp.resources.dll
