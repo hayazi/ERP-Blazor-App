@@ -8,13 +8,12 @@
 <PageTitle>Chart of Accounts</PageTitle>
 
 <MudGrid>
-    <MudItem xs="12">
+    <MudItem xs="12" md="5">
         <MudPaper Class="pa-4" Elevation="2">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <MudText Typo="Typo.h6">Chart of Accounts</MudText>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddAccount">Add Account</MudButton>
+                <MudText Typo="Typo.h6">Account Structure</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="CreateAccount">Create Account</MudButton>
             </div>
-
             @if (accounts == null)
             {
                 <MudProgressCircular Indeterminate="true" />
@@ -25,6 +24,33 @@
                 {
                     <ChartOfAccountTreeNode Node="@account" OnSelect="OnAccountSelected" OnEdit="EditAccount" OnDelete="DeleteAccount" />
                 }
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="7">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                @(selectedAccount == null ? "Select an account to view details" : $"{selectedAccount.Code} - {selectedAccount.Name}")
+            </MudText>
+            @if (selectedAccount != null)
+            {
+                <MudDataGrid T="ChartOfAccount" Items="selectedAccount.ChildAccounts" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="ChartOfAccount" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="ChartOfAccount" TProperty="string" Property="x => x.Code" Title="Code" />
+                        <PropertyColumn T="ChartOfAccount" TProperty="string" Property="x => x.Name" Title="Name" />
+                        <PropertyColumn T="ChartOfAccount" TProperty="string" Property="x => x.Type" Title="Type" />
+                        <PropertyColumn T="ChartOfAccount" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="account">
+                                <MudBadge Color="account.Item.IsActive ? Color.Success : Color.Error" Content="@(account.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
             }
         </MudPaper>
     </MudItem>
@@ -85,6 +111,7 @@
 @code {
     private List<ChartOfAccount>? accounts;
     private List<ChartOfAccount> rootAccounts = new();
+    private ChartOfAccount? selectedAccount;
     private bool showDialog = false;
     private ChartOfAccount? editingAccount;
 
@@ -99,15 +126,16 @@
         rootAccounts = accounts!.Where(a => !a.ParentAccountId.HasValue).ToList();
     }
 
-    private void OnAccountSelected(ChartOfAccount account)
-    {
-        EditAccount(account);
-    }
-
-    private void AddAccount()
+    private void CreateAccount()
     {
         editingAccount = new ChartOfAccount { IsActive = true };
         showDialog = true;
+    }
+
+    private void OnAccountSelected(ChartOfAccount account)
+    {
+        selectedAccount = account;
+        StateHasChanged();
     }
 
     private void EditAccount(ChartOfAccount account)
@@ -144,6 +172,10 @@
     private async Task DeleteAccount(int id)
     {
         await ChartOfAccountService.DeleteAsync(id);
+        if (selectedAccount?.Id == id)
+        {
+            selectedAccount = null;
+        }
         await LoadData();
     }
 

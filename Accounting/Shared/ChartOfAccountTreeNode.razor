@@ -7,8 +7,8 @@
         <MudText Typo="Typo.body1" Style="cursor:pointer" @onclick="() => OnSelect.InvokeAsync(Node)">
             <strong>@Node.Code</strong> - @Node.Name
         </MudText>
+        <MudBadge Color="Node.IsActive ? Color.Success : Color.Error" Content="@(Node.IsActive ? "Active" : "Inactive")" Class="me-12" />
         <MudSpacer />
-        <MudBadge Color="Node.IsActive ? Color.Success : Color.Error" Content="@(Node.IsActive ? "Active" : "Inactive")" Class="me-2" />
         <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => OnEdit.InvokeAsync(Node)" />
         <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => OnDelete.InvokeAsync(Node.Id)" />
     </div>
