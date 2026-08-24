@@ -252,3 +252,4 @@ Error Number:208,State:1,Class:16
 [14:31:11 INF] Retrieved 1 root departments
 [14:34:33 WRN] Failed to determine the https port for redirect.
 [14:36:48 WRN] Failed to determine the https port for redirect.
+[14:50:48 WRN] Failed to determine the https port for redirect.

@@ -68,6 +68,38 @@
                 </div>
             </div>
         </div>
+        <div class="nav-item px-3">
+            <a class="nav-link" href="javascript:void(0)" @onclick="ToggleAAASubMenu">
+                <span class="oi oi-lock-locked" aria-hidden="true"></span> AAA
+            </a>
+            <div class="nav-submenu @AAANavMenuCssClass">
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="aaa/users">
+                        <span class="oi oi-person" aria-hidden="true"></span> Users
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="aaa/roles">
+                        <span class="oi oi-briefcase" aria-hidden="true"></span> Roles
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="aaa/permissions">
+                        <span class="oi oi-key" aria-hidden="true"></span> Permissions
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="aaa/accounts">
+                        <span class="oi oi-book" aria-hidden="true"></span> Accounts
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="aaa/transactions">
+                        <span class="oi oi-transfer" aria-hidden="true"></span> Transactions
+                    </NavLink>
+                </div>
+            </div>
+        </div>
     </nav>
 </div>
 
@@ -84,6 +116,10 @@
 
     private string? InventoryNavMenuCssClass => collapseInventorySubMenu ? "collapse" : null;
 
+    private bool collapseAAASubMenu = true;
+
+    private string? AAANavMenuCssClass => collapseAAASubMenu ? "collapse" : null;
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
@@ -97,5 +133,10 @@
     private void ToggleInventorySubMenu()
     {
         collapseInventorySubMenu = !collapseInventorySubMenu;
+    }
+
+    private void ToggleAAASubMenu()
+    {
+        collapseAAASubMenu = !collapseAAASubMenu;
     }
 }

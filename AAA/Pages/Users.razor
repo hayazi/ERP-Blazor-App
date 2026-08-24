@@ -1,0 +1,159 @@
+@page "/aaa/users"
+@using ERPBlazorApp.AAA.Services
+@using ERPBlazorApp.AAA.Models
+@using MudBlazor
+@inject UserService UserService
+@inject RoleService RoleService
+
+<PageTitle>Users</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Users</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddUser">Add User</MudButton>
+            </div>
+
+            @if (users == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="User" Items="users" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="User" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="User" TProperty="string" Property="x => x.Username" Title="Username" />
+                        <PropertyColumn T="User" TProperty="string" Property="x => x.Email" Title="Email" />
+                        <PropertyColumn T="User" TProperty="string" Property="x => x.FirstName" Title="First Name" />
+                        <PropertyColumn T="User" TProperty="string" Property="x => x.LastName" Title="Last Name" />
+                        <PropertyColumn T="User" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="user">
+                                <MudBadge Color="user.Item.IsActive ? Color.Success : Color.Error" Content="@(user.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="User" Title="Actions">
+                            <CellTemplate Context="user">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditUser(user.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteUser(user.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingUser == null ? "Add" : "Edit") User</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input class="form-control" @bind="editingUser!.Username" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input class="form-control" type="email" @bind="editingUser!.Email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input class="form-control" @bind="editingUser!.FirstName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input class="form-control" @bind="editingUser!.LastName" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input class="form-control" type="password" @bind="editingUser!.PasswordHash" />
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" @bind="editingUser!.IsActive" id="activeCheck" />
+                        <label class="form-check-label" for="activeCheck">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveUser">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<User>? users;
+    private bool showDialog = false;
+    private User? editingUser;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        users = UserService.GetAll();
+    }
+
+    private void AddUser()
+    {
+        editingUser = new User { IsActive = true };
+        showDialog = true;
+    }
+
+    private void EditUser(User user)
+    {
+        editingUser = new User
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            IsActive = user.IsActive
+        };
+        showDialog = true;
+    }
+
+    private void SaveUser()
+    {
+        if (editingUser == null) return;
+
+        if (editingUser.Id == 0)
+        {
+            UserService.Add(editingUser);
+        }
+        else
+        {
+            UserService.Update(editingUser.Id, editingUser);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeleteUser(int id)
+    {
+        UserService.Delete(id);
+        LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingUser = null;
+    }
+}

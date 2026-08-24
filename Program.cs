@@ -35,6 +35,11 @@ builder.Services.AddScoped<ERPBlazorApp.Inventory.Services.OutboundService>();
 builder.Services.AddScoped<ERPBlazorApp.Inventory.Services.KardexService>();
 builder.Services.AddScoped<ERPBlazorApp.Inventory.Services.SupplierService>();
 builder.Services.AddScoped<ERPBlazorApp.Inventory.Services.CustomerService>();
+builder.Services.AddScoped<ERPBlazorApp.AAA.Services.UserService>();
+builder.Services.AddScoped<ERPBlazorApp.AAA.Services.RoleService>();
+builder.Services.AddScoped<ERPBlazorApp.AAA.Services.PermissionService>();
+builder.Services.AddScoped<ERPBlazorApp.AAA.Services.AccountService>();
+builder.Services.AddScoped<ERPBlazorApp.AAA.Services.TransactionService>();
 
 var app = builder.Build();
 

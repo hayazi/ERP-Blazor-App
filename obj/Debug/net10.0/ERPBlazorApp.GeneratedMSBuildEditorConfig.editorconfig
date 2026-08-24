@@ -34,6 +34,26 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
+[D:/app/ERP-Blazor-App/AAA/Pages/Accounts.razor]
+build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXEFjY291bnRzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/AAA/Pages/Permissions.razor]
+build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXFBlcm1pc3Npb25zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/AAA/Pages/Roles.razor]
+build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXFJvbGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/AAA/Pages/Transactions.razor]
+build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXFRyYW5zYWN0aW9ucy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/AAA/Pages/Users.razor]
+build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXFVzZXJzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/app/ERP-Blazor-App/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

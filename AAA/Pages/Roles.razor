@@ -1,0 +1,143 @@
+@page "/aaa/roles"
+@using ERPBlazorApp.AAA.Services
+@using ERPBlazorApp.AAA.Models
+@using MudBlazor
+@inject RoleService RoleService
+@inject PermissionService PermissionService
+
+<PageTitle>Roles</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Roles</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddRole">Add Role</MudButton>
+            </div>
+
+            @if (roles == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Role" Items="roles" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="Role" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Role" TProperty="string" Property="x => x.Name" Title="Name" />
+                        <PropertyColumn T="Role" TProperty="string" Property="x => x.Description" Title="Description" />
+                        <PropertyColumn T="Role" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="role">
+                                <MudBadge Color="role.Item.IsActive ? Color.Success : Color.Error" Content="@(role.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Role" Title="Actions">
+                            <CellTemplate Context="role">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditRole(role.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteRole(role.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingRole == null ? "Add" : "Edit") Role</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="editingRole!.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input class="form-control" @bind="editingRole!.Description" />
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" @bind="editingRole!.IsActive" id="activeCheck" />
+                        <label class="form-check-label" for="activeCheck">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveRole">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Role>? roles;
+    private bool showDialog = false;
+    private Role? editingRole;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        roles = RoleService.GetAll();
+    }
+
+    private void AddRole()
+    {
+        editingRole = new Role { IsActive = true };
+        showDialog = true;
+    }
+
+    private void EditRole(Role role)
+    {
+        editingRole = new Role
+        {
+            Id = role.Id,
+            Name = role.Name,
+            Description = role.Description,
+            IsActive = role.IsActive
+        };
+        showDialog = true;
+    }
+
+    private void SaveRole()
+    {
+        if (editingRole == null) return;
+
+        if (editingRole.Id == 0)
+        {
+            RoleService.Add(editingRole);
+        }
+        else
+        {
+            RoleService.Update(editingRole.Id, editingRole);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeleteRole(int id)
+    {
+        RoleService.Delete(id);
+        LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingRole = null;
+    }
+}

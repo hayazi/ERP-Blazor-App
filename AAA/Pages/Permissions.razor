@@ -1,0 +1,144 @@
+@page "/aaa/permissions"
+@using ERPBlazorApp.AAA.Services
+@using ERPBlazorApp.AAA.Models
+@using MudBlazor
+@inject PermissionService PermissionService
+
+<PageTitle>Permissions</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Permissions</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddPermission">Add Permission</MudButton>
+            </div>
+
+            @if (permissions == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Permission" Items="permissions" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="Permission" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Permission" TProperty="string" Property="x => x.Name" Title="Name" />
+                        <PropertyColumn T="Permission" TProperty="string" Property="x => x.Code" Title="Code" />
+                        <PropertyColumn T="Permission" TProperty="string" Property="x => x.Module" Title="Module" />
+                        <PropertyColumn T="Permission" TProperty="string" Property="x => x.Description" Title="Description" />
+                        <TemplateColumn T="Permission" Title="Actions">
+                            <CellTemplate Context="perm">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditPermission(perm.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeletePermission(perm.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingPermission == null ? "Add" : "Edit") Permission</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="editingPermission!.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Code</label>
+                        <input class="form-control" @bind="editingPermission!.Code" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Module</label>
+                        <input class="form-control" @bind="editingPermission!.Module" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input class="form-control" @bind="editingPermission!.Description" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SavePermission">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Permission>? permissions;
+    private bool showDialog = false;
+    private Permission? editingPermission;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        permissions = PermissionService.GetAll();
+    }
+
+    private void AddPermission()
+    {
+        editingPermission = new Permission();
+        showDialog = true;
+    }
+
+    private void EditPermission(Permission permission)
+    {
+        editingPermission = new Permission
+        {
+            Id = permission.Id,
+            Name = permission.Name,
+            Code = permission.Code,
+            Module = permission.Module,
+            Description = permission.Description
+        };
+        showDialog = true;
+    }
+
+    private void SavePermission()
+    {
+        if (editingPermission == null) return;
+
+        if (editingPermission.Id == 0)
+        {
+            PermissionService.Add(editingPermission);
+        }
+        else
+        {
+            PermissionService.Update(editingPermission.Id, editingPermission);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeletePermission(int id)
+    {
+        PermissionService.Delete(id);
+        LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingPermission = null;
+    }
+}

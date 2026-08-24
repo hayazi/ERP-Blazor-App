@@ -1,0 +1,292 @@
+@page "/aaa/transactions"
+@using ERPBlazorApp.AAA.Services
+@using ERPBlazorApp.AAA.Models
+@using MudBlazor
+@inject TransactionService TransactionService
+@inject AccountService AccountService
+
+<PageTitle>Transactions</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Transactions</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddTransaction">Add Transaction</MudButton>
+            </div>
+
+            @if (transactions == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Transaction" Items="transactions" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <PropertyColumn T="Transaction" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Transaction" TProperty="string" Property="x => x.Reference" Title="Reference" />
+                        <PropertyColumn T="Transaction" TProperty="DateTime" Property="x => x.Date" Title="Date" />
+                        <PropertyColumn T="Transaction" TProperty="string" Property="x => x.Type" Title="Type" />
+                        <PropertyColumn T="Transaction" TProperty="decimal" Property="x => x.TotalAmount" Title="Total Amount" />
+                        <PropertyColumn T="Transaction" TProperty="string" Property="x => x.Status" Title="Status" />
+                        <TemplateColumn T="Transaction" Title="Actions">
+                            <CellTemplate Context="txn">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditTransaction(txn.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteTransaction(txn.Item.Id)" />
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => ViewDetails(txn.Item.Id)">Details</MudButton>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingTransaction == null || editingTransaction.Id == 0 ? "Add" : "Edit") Transaction</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Reference</label>
+                                <input class="form-control" @bind="editingTransaction!.Reference" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Date</label>
+                                <input class="form-control" type="date" @bind="editingTransaction!.Date" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" @bind="editingTransaction!.Type">
+                                    <option value="Journal">Journal</option>
+                                    <option value="Payment">Payment</option>
+                                    <option value="Receipt">Receipt</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingTransaction!.Status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Posted">Posted</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="editingTransaction!.Description"></textarea>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6>Journal Entries</h6>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="AddJournalEntry">Add Entry</MudButton>
+                    </div>
+
+                    @if (editingTransaction!.JournalEntries == null || !editingTransaction.JournalEntries.Any())
+                    {
+                        <p class="text-muted">No journal entries added.</p>
+                    }
+                    else
+                    {
+                        <MudDataGrid T="JournalEntry" Items="editingTransaction.JournalEntries" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                            <Columns>
+                                <PropertyColumn T="JournalEntry" TProperty="int" Property="x => x.AccountId" Title="Account">
+                                    <CellTemplate Context="entry">
+                                        <MudSelect T="int" @bind-Value="entry.Item.AccountId" Variant="Variant.Outlined" Dense="true" Style="min-width: 150px;">
+                                            <MudSelectItem Value="0">Select Account</MudSelectItem>
+                                            @foreach (var acc in accounts!)
+                                            {
+                                                <MudSelectItem Value="@acc.Id">@acc.Code - @acc.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="JournalEntry" TProperty="decimal" Property="x => x.Debit" Title="Debit">
+                                    <CellTemplate Context="entry">
+                                        <MudNumericField @bind-Value="entry.Item.Debit" Variant="Variant.Outlined" Dense="true" Min="0" Format="N0" Style="min-width: 120px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="JournalEntry" TProperty="decimal" Property="x => x.Credit" Title="Credit">
+                                    <CellTemplate Context="entry">
+                                        <MudNumericField @bind-Value="entry.Item.Credit" Variant="Variant.Outlined" Dense="true" Min="0" Format="N0" Style="min-width: 120px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="JournalEntry" TProperty="string" Property="x => x.Description" Title="Description">
+                                    <CellTemplate Context="entry">
+                                        <input class="form-control" @bind="entry.Item.Description" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <TemplateColumn T="JournalEntry" Title="Actions">
+                                    <CellTemplate Context="entry">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => RemoveJournalEntry(entry.Item)" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveTransaction">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showDetailsDialog && selectedTransaction != null)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Journal Entries - @selectedTransaction.Reference</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDetailsDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <MudDataGrid T="JournalEntry" Items="selectedTransaction.JournalEntries" Filterable="true">
+                        <Columns>
+                            <PropertyColumn T="JournalEntry" TProperty="int" Property="x => x.Id" Title="ID" />
+                            <PropertyColumn T="JournalEntry" TProperty="string" Property="x => x.Account!.Code" Title="Account Code" />
+                            <PropertyColumn T="JournalEntry" TProperty="string" Property="x => x.Account!.Name" Title="Account Name" />
+                            <PropertyColumn T="JournalEntry" TProperty="decimal" Property="x => x.Debit" Title="Debit" />
+                            <PropertyColumn T="JournalEntry" TProperty="decimal" Property="x => x.Credit" Title="Credit" />
+                            <PropertyColumn T="JournalEntry" TProperty="string" Property="x => x.Description" Title="Description" />
+                        </Columns>
+                    </MudDataGrid>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDetailsDialog">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Transaction>? transactions;
+    private List<Account>? accounts;
+    private bool showDialog = false;
+    private bool showDetailsDialog = false;
+    private Transaction? editingTransaction;
+    private Transaction? selectedTransaction;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        transactions = TransactionService.GetAll();
+        accounts = TransactionService.GetAccounts();
+    }
+
+    private void AddTransaction()
+    {
+        editingTransaction = new Transaction { Date = DateTime.Today, JournalEntries = new List<JournalEntry>() };
+        showDialog = true;
+    }
+
+    private void EditTransaction(Transaction transaction)
+    {
+        editingTransaction = new Transaction
+        {
+            Id = transaction.Id,
+            Reference = transaction.Reference,
+            Date = transaction.Date,
+            Type = transaction.Type,
+            Description = transaction.Description,
+            TotalAmount = transaction.TotalAmount,
+            Status = transaction.Status,
+            JournalEntries = transaction.JournalEntries.Select(j => new JournalEntry
+            {
+                Id = j.Id,
+                TransactionId = j.TransactionId,
+                AccountId = j.AccountId,
+                Debit = j.Debit,
+                Credit = j.Credit,
+                Description = j.Description
+            }).ToList()
+        };
+        showDialog = true;
+    }
+
+    private void AddJournalEntry()
+    {
+        if (editingTransaction == null) return;
+        if (editingTransaction.JournalEntries == null)
+        {
+            editingTransaction.JournalEntries = new List<JournalEntry>();
+        }
+        editingTransaction.JournalEntries.Add(new JournalEntry { Debit = 0, Credit = 0 });
+    }
+
+    private void RemoveJournalEntry(JournalEntry entry)
+    {
+        if (editingTransaction == null || editingTransaction.JournalEntries == null) return;
+        editingTransaction.JournalEntries.Remove(entry);
+    }
+
+    private void SaveTransaction()
+    {
+        if (editingTransaction == null) return;
+
+        if (editingTransaction.Id == 0)
+        {
+            TransactionService.Add(editingTransaction);
+        }
+        else
+        {
+            TransactionService.Update(editingTransaction.Id, editingTransaction);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeleteTransaction(int id)
+    {
+        TransactionService.Delete(id);
+        LoadData();
+    }
+
+    private void ViewDetails(int id)
+    {
+        selectedTransaction = TransactionService.GetById(id);
+        showDetailsDialog = true;
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingTransaction = null;
+    }
+
+    private void CloseDetailsDialog()
+    {
+        showDetailsDialog = false;
+        selectedTransaction = null;
+    }
+}
