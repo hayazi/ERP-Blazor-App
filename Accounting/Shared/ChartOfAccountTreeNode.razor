@@ -3,16 +3,23 @@
 
 <div class="tree-node">
     <div class="tree-node-content d-flex align-items-center">
-        <MudIcon Icon="@Icons.Material.Filled.AccountTree" Class="mr-2" Size="Size.Small" />
+        @if (Node.ChildAccounts != null && Node.ChildAccounts.Any())
+        {
+            <MudIconButton Icon="@(isExpanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight)" Size="Size.Small" OnClick="ToggleExpand" />
+        }
+        else
+        {
+            <MudIcon Icon="@Icons.Material.Filled.AccountTree" Class="mr-2" Size="Size.Small" />
+        }
         <MudText Typo="Typo.body1" Style="cursor:pointer" @onclick="() => OnSelect.InvokeAsync(Node)">
             <strong>@Node.Code</strong> - @Node.Name
         </MudText>
-        <MudBadge Color="Node.IsActive ? Color.Success : Color.Error" Content="@(Node.IsActive ? "Active" : "Inactive")" Class="me-12" />
         <MudSpacer />
+        <MudBadge Color="Node.IsActive ? Color.Success : Color.Error" Content="@(Node.IsActive ? "Active" : "Inactive")" Class="me-2" />
         <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => OnEdit.InvokeAsync(Node)" />
         <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => OnDelete.InvokeAsync(Node.Id)" />
     </div>
-    @if (Node.ChildAccounts != null && Node.ChildAccounts.Any())
+    @if (isExpanded && Node.ChildAccounts != null && Node.ChildAccounts.Any())
     {
         <div class="tree-node-children" style="padding-left: 1.5rem;">
             @foreach (var child in Node.ChildAccounts)
@@ -35,4 +42,11 @@
 
     [Parameter]
     public EventCallback<int> OnDelete { get; set; }
+
+    private bool isExpanded = false;
+
+    private void ToggleExpand()
+    {
+        isExpanded = !isExpanded;
+    }
 }

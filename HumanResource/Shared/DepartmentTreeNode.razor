@@ -3,13 +3,20 @@
 
 <div class="tree-node">
     <div class="tree-node-content d-flex align-items-center">
-        <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" Size="Size.Small" />
+        @if (Node.SubDepartments != null && Node.SubDepartments.Any())
+        {
+            <MudIconButton Icon="@(isExpanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight)" Size="Size.Small" OnClick="ToggleExpand" />
+        }
+        else
+        {
+            <MudIcon Icon="@Icons.Material.Filled.Business" Class="mr-2" Size="Size.Small" />
+        }
         <MudText Typo="Typo.body1" Style="cursor:pointer" @onclick="() => OnSelect.InvokeAsync(Node)">@Node.Name</MudText>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => OnEdit.InvokeAsync(Node)" />
         <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => OnDelete.InvokeAsync(Node.Id)" />
     </div>
-    @if (Node.SubDepartments != null && Node.SubDepartments.Any())
+    @if (isExpanded && Node.SubDepartments != null && Node.SubDepartments.Any())
     {
         <div class="tree-node-children" style="padding-left: 1.5rem;">
             @foreach (var child in Node.SubDepartments)
@@ -35,4 +42,11 @@
 
     [Parameter]
     public EventCallback<int> OnDelete { get; set; }
+
+    private bool isExpanded = false;
+
+    private void ToggleExpand()
+    {
+        isExpanded = !isExpanded;
+    }
 }

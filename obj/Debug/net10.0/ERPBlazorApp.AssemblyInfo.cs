@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ERPBlazorApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6cee6332085e0537b5ee1b9e16f695afaafd058f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+44327d2df96611025d67b94064595b8f576ef5b3")]
 [assembly: System.Reflection.AssemblyProductAttribute("ERPBlazorApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ERPBlazorApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
