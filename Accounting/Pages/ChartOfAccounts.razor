@@ -20,29 +20,25 @@
             }
             else
             {
-                <MudDataGrid T="ChartOfAccount" Items="accounts" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
-                    <Columns>
-                        <PropertyColumn T="ChartOfAccount" TProperty="int" Property="x => x.Id" Title="ID" />
-                        <PropertyColumn T="ChartOfAccount" TProperty="string" Property="x => x.Code" Title="Code" />
-                        <PropertyColumn T="ChartOfAccount" TProperty="string" Property="x => x.Name" Title="Name" />
-                        <PropertyColumn T="ChartOfAccount" TProperty="string" Property="x => x.Type" Title="Type" />
-                        <PropertyColumn T="ChartOfAccount" TProperty="string" Property="x => x.ParentAccount!.Name" Title="Parent Account" />
-                        <PropertyColumn T="ChartOfAccount" TProperty="bool" Property="x => x.IsActive" Title="Active">
-                            <CellTemplate Context="account">
-                                <MudBadge Color="account.Item.IsActive ? Color.Success : Color.Error" Content="@(account.Item.IsActive ? "Active" : "Inactive")" />
-                            </CellTemplate>
-                        </PropertyColumn>
-                        <TemplateColumn T="ChartOfAccount" Title="Actions">
-                            <CellTemplate Context="account">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditAccount(account.Item)" />
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAccount(account.Item.Id)" />
-                            </CellTemplate>
-                        </TemplateColumn>
-                    </Columns>
-                    <PagerContent>
-                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
-                    </PagerContent>
-                </MudDataGrid>
+                <MudTreeView T="ChartOfAccount" Items="treeItems" SelectedValueChanged="OnAccountSelected">
+                    <ItemTemplate>
+                        <MudTreeViewItem Items="@context.Children" Value="@context.Value">
+                            <Content>
+                                <div class="d-flex justify-content-between align-items-center" style="width: 100%;">
+                                    <div>
+                                        <MudText Typo="Typo.body1">@context.Value.Code - @context.Value.Name</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Default">@context.Value.Type</MudText>
+                                    </div>
+                                    <div>
+                                        <MudBadge Color="context.Value.IsActive ? Color.Success : Color.Error" Content="@(context.Value.IsActive ? "Active" : "Inactive")" Class="me-2" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditAccount(context.Value)" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteAccount(context.Value.Id)" />
+                                    </div>
+                                </div>
+                            </Content>
+                        </MudTreeViewItem>
+                    </ItemTemplate>
+                </MudTreeView>
             }
         </MudPaper>
     </MudItem>
@@ -102,6 +98,7 @@
 
 @code {
     private List<ChartOfAccount>? accounts;
+    private IReadOnlyCollection<ITreeItemData<ChartOfAccount>> treeItems = Array.Empty<ITreeItemData<ChartOfAccount>>();
     private bool showDialog = false;
     private ChartOfAccount? editingAccount;
 
@@ -113,6 +110,34 @@
     private async Task LoadData()
     {
         accounts = await ChartOfAccountService.GetAllAsync();
+        treeItems = BuildTree(accounts);
+    }
+
+    private IReadOnlyCollection<ITreeItemData<ChartOfAccount>> BuildTree(List<ChartOfAccount> flatList)
+    {
+        var lookup = flatList.ToDictionary(a => a.Id);
+        var items = flatList.ToDictionary(a => a.Id, a => new ChartOfAccountTreeItem { Value = a });
+        var roots = new List<ITreeItemData<ChartOfAccount>>();
+
+        foreach (var account in flatList)
+        {
+            if (account.ParentAccountId.HasValue && lookup.ContainsKey(account.ParentAccountId.Value))
+            {
+                var parent = items[account.ParentAccountId.Value];
+                parent.Children = parent.Children.Concat(new[] { items[account.Id] }).ToList();
+            }
+            else
+            {
+                roots.Add(items[account.Id]);
+            }
+        }
+
+        return roots;
+    }
+
+    private void OnAccountSelected(ChartOfAccount account)
+    {
+        EditAccount(account);
     }
 
     private void AddAccount()
@@ -162,5 +187,20 @@
     {
         showDialog = false;
         editingAccount = null;
+    }
+
+    private class ChartOfAccountTreeItem : ITreeItemData<ChartOfAccount>
+    {
+        private List<ITreeItemData<ChartOfAccount>> _children = new List<ITreeItemData<ChartOfAccount>>();
+        
+        public ChartOfAccount Value { get; set; } = new ChartOfAccount();
+        public IReadOnlyCollection<ITreeItemData<ChartOfAccount>> Children { get => _children; set => _children = value.ToList(); }
+        public string Text { get; set; } = string.Empty;
+        public string? Icon { get; set; }
+        public bool Expanded { get; set; }
+        public bool Expandable { get; set; }
+        public bool Selected { get; set; }
+        public bool Visible { get; set; } = true;
+        public bool HasChildren => _children.Count > 0;
     }
 }
