@@ -50,43 +50,104 @@
 @if (showDialog)
 {
     <div class="modal" style="display:block" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">@(editingOutbound == null ? "Add" : "Edit") Outbound</h5>
+                    <h5 class="modal-title">@(editingOutbound == null || editingOutbound.Id == 0 ? "Add" : "Edit") Outbound</h5>
                     <button type="button" class="btn-close" @onclick="CloseDialog"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Reference</label>
-                        <input class="form-control" @bind="editingOutbound!.Reference" />
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Reference</label>
+                                <input class="form-control" @bind="editingOutbound!.Reference" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Date</label>
+                                <input class="form-control" type="date" @bind="editingOutbound!.Date" />
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Date</label>
-                        <input class="form-control" type="date" @bind="editingOutbound!.Date" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Customer</label>
-                        <select class="form-select" @bind="editingOutbound!.CustomerId">
-                            <option value="0">Select Customer</option>
-                            @foreach (var cust in customers)
-                            {
-                                <option value="@cust.Id">@cust.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" @bind="editingOutbound!.Status">
-                            <option value="Pending">Pending</option>
-                            <option value="Shipped">Shipped</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Customer</label>
+                                <select class="form-select" @bind="editingOutbound!.CustomerId">
+                                    <option value="0">Select Customer</option>
+                                    @foreach (var cust in customers!)
+                                    {
+                                        <option value="@cust.Id">@cust.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingOutbound!.Status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Notes</label>
                         <textarea class="form-control" @bind="editingOutbound!.Notes"></textarea>
                     </div>
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6>Outbound Details</h6>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="AddDetail">Add Detail</MudButton>
+                    </div>
+
+                    @if (editingOutbound!.Details == null || !editingOutbound.Details.Any())
+                    {
+                        <p class="text-muted">No details added.</p>
+                    }
+                    else
+                    {
+                        <MudDataGrid T="OutboundDetail" Items="editingOutbound.Details" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                            <Columns>
+                                <PropertyColumn T="OutboundDetail" TProperty="int" Property="x => x.ProductId" Title="Product">
+                                    <CellTemplate Context="detail">
+                                        <MudSelect T="int" @bind-Value="detail.Item.ProductId" Variant="Variant.Outlined" Dense="true" Style="min-width: 150px;">
+                                            <MudSelectItem Value="0">Select Product</MudSelectItem>
+                                            @foreach (var prod in products!)
+                                            {
+                                                <MudSelectItem Value="@prod.Id">@prod.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="OutboundDetail" TProperty="int" Property="x => x.Quantity" Title="Quantity">
+                                    <CellTemplate Context="detail">
+                                        <MudNumericField @bind-Value="detail.Item.Quantity" Variant="Variant.Outlined" Dense="true" Min="1" Style="min-width: 100px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="OutboundDetail" TProperty="decimal" Property="x => x.UnitPrice" Title="Unit Price">
+                                    <CellTemplate Context="detail">
+                                        <MudNumericField @bind-Value="detail.Item.UnitPrice" Variant="Variant.Outlined" Dense="true" Min="0" Format="N0" Style="min-width: 120px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="OutboundDetail" TProperty="decimal" Property="x => x.TotalPrice" Title="Total Price">
+                                    <CellTemplate Context="detail">
+                                        @((detail.Item.Quantity * detail.Item.UnitPrice).ToString("N0"))
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <TemplateColumn T="OutboundDetail" Title="Actions">
+                                    <CellTemplate Context="detail">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => RemoveDetail(detail.Item)" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    }
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
@@ -148,7 +209,7 @@
 
     private void AddOutbound()
     {
-        editingOutbound = new Outbound { Date = DateTime.Today };
+        editingOutbound = new Outbound { Date = DateTime.Today, Details = new List<OutboundDetail>() };
         showDialog = true;
     }
 
@@ -161,9 +222,34 @@
             Date = outbound.Date,
             CustomerId = outbound.CustomerId,
             Status = outbound.Status,
-            Notes = outbound.Notes
+            Notes = outbound.Notes,
+            Details = outbound.Details.Select(d => new OutboundDetail
+            {
+                Id = d.Id,
+                OutboundId = d.OutboundId,
+                ProductId = d.ProductId,
+                Quantity = d.Quantity,
+                UnitPrice = d.UnitPrice,
+                TotalPrice = d.TotalPrice
+            }).ToList()
         };
         showDialog = true;
+    }
+
+    private void AddDetail()
+    {
+        if (editingOutbound == null) return;
+        if (editingOutbound.Details == null)
+        {
+            editingOutbound.Details = new List<OutboundDetail>();
+        }
+        editingOutbound.Details.Add(new OutboundDetail { Quantity = 1, UnitPrice = 0 });
+    }
+
+    private void RemoveDetail(OutboundDetail detail)
+    {
+        if (editingOutbound == null || editingOutbound.Details == null) return;
+        editingOutbound.Details.Remove(detail);
     }
 
     private void SaveOutbound()

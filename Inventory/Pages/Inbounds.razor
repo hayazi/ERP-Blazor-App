@@ -50,43 +50,104 @@
 @if (showDialog)
 {
     <div class="modal" style="display:block" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">@(editingInbound == null ? "Add" : "Edit") Inbound</h5>
+                    <h5 class="modal-title">@(editingInbound == null || editingInbound.Id == 0 ? "Add" : "Edit") Inbound</h5>
                     <button type="button" class="btn-close" @onclick="CloseDialog"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Reference</label>
-                        <input class="form-control" @bind="editingInbound!.Reference" />
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Reference</label>
+                                <input class="form-control" @bind="editingInbound!.Reference" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Date</label>
+                                <input class="form-control" type="date" @bind="editingInbound!.Date" />
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Date</label>
-                        <input class="form-control" type="date" @bind="editingInbound!.Date" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Supplier</label>
-                        <select class="form-select" @bind="editingInbound!.SupplierId">
-                            <option value="0">Select Supplier</option>
-                            @foreach (var sup in suppliers)
-                            {
-                                <option value="@sup.Id">@sup.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" @bind="editingInbound!.Status">
-                            <option value="Pending">Pending</option>
-                            <option value="Received">Received</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Supplier</label>
+                                <select class="form-select" @bind="editingInbound!.SupplierId">
+                                    <option value="0">Select Supplier</option>
+                                    @foreach (var sup in suppliers!)
+                                    {
+                                        <option value="@sup.Id">@sup.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingInbound!.Status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Received">Received</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Notes</label>
                         <textarea class="form-control" @bind="editingInbound!.Notes"></textarea>
                     </div>
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6>Inbound Details</h6>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" OnClick="AddDetail">Add Detail</MudButton>
+                    </div>
+
+                    @if (editingInbound!.Details == null || !editingInbound.Details.Any())
+                    {
+                        <p class="text-muted">No details added.</p>
+                    }
+                    else
+                    {
+                        <MudDataGrid T="InboundDetail" Items="editingInbound.Details" Filterable="true" ShowColumnOptions="true" Sortable="true" EditMode="DataGridEditMode.Cell">
+                            <Columns>
+                                <PropertyColumn T="InboundDetail" TProperty="int" Property="x => x.ProductId" Title="Product">
+                                    <CellTemplate Context="detail">
+                                        <MudSelect T="int" @bind-Value="detail.Item.ProductId" Variant="Variant.Outlined" Dense="true" Style="min-width: 150px;">
+                                            <MudSelectItem Value="0">Select Product</MudSelectItem>
+                                            @foreach (var prod in products!)
+                                            {
+                                                <MudSelectItem Value="@prod.Id">@prod.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="InboundDetail" TProperty="int" Property="x => x.Quantity" Title="Quantity">
+                                    <CellTemplate Context="detail">
+                                        <MudNumericField @bind-Value="detail.Item.Quantity" Variant="Variant.Outlined" Dense="true" Min="1" Style="min-width: 100px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="InboundDetail" TProperty="decimal" Property="x => x.UnitPrice" Title="Unit Price">
+                                    <CellTemplate Context="detail">
+                                        <MudNumericField @bind-Value="detail.Item.UnitPrice" Variant="Variant.Outlined" Dense="true" Min="0" Format="N0" Style="min-width: 120px;" />
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn T="InboundDetail" TProperty="decimal" Property="x => x.TotalPrice" Title="Total Price">
+                                    <CellTemplate Context="detail">
+                                        @((detail.Item.Quantity * detail.Item.UnitPrice).ToString("N0"))
+                                    </CellTemplate>
+                                </PropertyColumn>
+                                <TemplateColumn T="InboundDetail" Title="Actions">
+                                    <CellTemplate Context="detail">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => RemoveDetail(detail.Item)" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    }
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
@@ -148,7 +209,7 @@
 
     private void AddInbound()
     {
-        editingInbound = new Inbound { Date = DateTime.Today };
+        editingInbound = new Inbound { Date = DateTime.Today, Details = new List<InboundDetail>() };
         showDialog = true;
     }
 
@@ -161,9 +222,34 @@
             Date = inbound.Date,
             SupplierId = inbound.SupplierId,
             Status = inbound.Status,
-            Notes = inbound.Notes
+            Notes = inbound.Notes,
+            Details = inbound.Details.Select(d => new InboundDetail
+            {
+                Id = d.Id,
+                InboundId = d.InboundId,
+                ProductId = d.ProductId,
+                Quantity = d.Quantity,
+                UnitPrice = d.UnitPrice,
+                TotalPrice = d.TotalPrice
+            }).ToList()
         };
         showDialog = true;
+    }
+
+    private void AddDetail()
+    {
+        if (editingInbound == null) return;
+        if (editingInbound.Details == null)
+        {
+            editingInbound.Details = new List<InboundDetail>();
+        }
+        editingInbound.Details.Add(new InboundDetail { Quantity = 1, UnitPrice = 0 });
+    }
+
+    private void RemoveDetail(InboundDetail detail)
+    {
+        if (editingInbound == null || editingInbound.Details == null) return;
+        editingInbound.Details.Remove(detail);
     }
 
     private void SaveInbound()

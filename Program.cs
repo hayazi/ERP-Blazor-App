@@ -18,12 +18,12 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddDbContext<HumanResourceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddDbContext<ERPBlazorApp.Inventory.Data.InventoryDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("InventoryConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.Configuration = builder.Configuration.GetConnectionString("redis");
     options.InstanceName = "ERPBlazorApp:";
 });
 builder.Services.AddScoped<ERPBlazorApp.HumanResource.Services.EmployeeService>();

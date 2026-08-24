@@ -66,6 +66,24 @@ public class OutboundService
         existing.Customer = _customers.FirstOrDefault(c => c.Id == outbound.CustomerId);
         existing.Status = outbound.Status;
         existing.Notes = outbound.Notes;
+
+        _details.RemoveAll(d => d.OutboundId == id);
+        existing.Details = outbound.Details.Select(d => new OutboundDetail
+        {
+            Id = d.Id == 0 ? (_details.Any() ? _details.Max(dd => dd.Id) + 1 : 1) : d.Id,
+            OutboundId = id,
+            ProductId = d.ProductId,
+            Quantity = d.Quantity,
+            UnitPrice = d.UnitPrice,
+            TotalPrice = d.Quantity * d.UnitPrice,
+            Outbound = existing,
+            Product = _products.FirstOrDefault(p => p.Id == d.ProductId)
+        }).ToList();
+
+        foreach (var detail in existing.Details)
+        {
+            _details.Add(detail);
+        }
     }
 
     public void Delete(int id)
