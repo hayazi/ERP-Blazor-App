@@ -1,0 +1,456 @@
+@page "/sale/sales"
+@using ERPBlazorApp.Sales.Services
+@using ERPBlazorApp.Sales.Models
+@using ERPBlazorApp.Inventory.Services
+@using ERPBlazorApp.Inventory.Models
+@using MudBlazor
+@inject SaleService SaleService
+@inject SaleItemService SaleItemService
+@inject ProductService ProductService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Sales</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Sales</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddSale">Add Sale</MudButton>
+            </div>
+
+            @if (sales == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Sale" Items="sales" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="Sale" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Sale" TProperty="string" Property="x => x.InvoiceNumber" Title="Invoice #" />
+                        <PropertyColumn T="Sale" TProperty="DateTime" Property="x => x.SaleDate" Title="Date" />
+                        <PropertyColumn T="Sale" TProperty="string" Property="x => x.CustomerName" Title="Customer" />
+                        <PropertyColumn T="Sale" TProperty="decimal" Property="x => x.TotalAmount" Title="Total">
+                            <CellTemplate Context="sale">
+                                <MudText Typo="Typo.body1">@sale.Item.TotalAmount.ToString("C")</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Sale" TProperty="string" Property="x => x.Status" Title="Status">
+                            <CellTemplate Context="sale">
+                                <MudBadge Color="GetStatusColor(sale.Item.Status)" Content="@sale.Item.Status" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Sale" Title="Actions">
+                            <CellTemplate Context="sale">
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" OnClick="() => ViewSale(sale.Item.Id)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditSale(sale.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteSale(sale.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingSale!.Id == 0 ? "Add" : "Edit") Sale</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Invoice Number</label>
+                                <input class="form-control" @bind="editingSale.InvoiceNumber" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sale Date</label>
+                                <input class="form-control" type="date" @bind="editingSale.SaleDate" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Customer Name</label>
+                                <input class="form-control" @bind="editingSale.CustomerName" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Customer Phone</label>
+                                <input class="form-control" @bind="editingSale.CustomerPhone" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Customer Email</label>
+                        <input class="form-control" type="email" @bind="editingSale.CustomerEmail" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Customer Address</label>
+                        <input class="form-control" @bind="editingSale.CustomerAddress" />
+                    </div>
+
+                    <hr />
+                    <h6>Sale Items</h6>
+
+                    <MudDataGrid T="SaleItem" Items="editingSale.Items" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                        <Columns>
+                            <PropertyColumn T="SaleItem" TProperty="int" Property="x => x.ProductId" Title="Product ID" />
+                            <PropertyColumn T="SaleItem" TProperty="string" Property="x => x.ProductName" Title="Product Name" />
+                            <PropertyColumn T="SaleItem" TProperty="string" Property="x => x.ProductSku" Title="SKU" />
+                            <PropertyColumn T="SaleItem" TProperty="int" Property="x => x.Quantity" Title="Qty" />
+                            <PropertyColumn T="SaleItem" TProperty="decimal" Property="x => x.UnitPrice" Title="Unit Price">
+                                <CellTemplate Context="item">
+                                    <MudText Typo="Typo.body1">@item.Item.UnitPrice.ToString("C")</MudText>
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn T="SaleItem" TProperty="decimal" Property="x => x.TotalPrice" Title="Total">
+                                <CellTemplate Context="item">
+                                    <MudText Typo="Typo.body1">@item.Item.TotalPrice.ToString("C")</MudText>
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <TemplateColumn T="SaleItem" Title="Actions">
+                                <CellTemplate Context="item">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditSaleItem(item.Item)" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteSaleItem(item.Item)" />
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                        </PagerContent>
+                    </MudDataGrid>
+
+                    <div class="mt-2">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="AddSaleItem">Add Item</MudButton>
+                    </div>
+
+                    <hr />
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Sub Total</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingSale.SubTotal" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Tax Amount</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingSale.TaxAmount" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Discount Amount</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingSale.DiscountAmount" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Total Amount</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingSale.TotalAmount" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingSale.Status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                    <option value="Refunded">Refunded</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" @bind="editingSale.Notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveSale">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showItemDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingSaleItem == null ? "Add" : "Edit") Sale Item</h5>
+                    <button type="button" class="btn-close" @onclick="CloseItemDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <select class="form-select" @bind="editingSaleItem!.ProductId">
+                            <option value="0">-- Select Product --</option>
+                            @foreach (var product in products)
+                            {
+                                <option value="@product.Id">@product.Name (@product.SKU)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Product Name</label>
+                                <input class="form-control" @bind="editingSaleItem!.ProductName" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">SKU</label>
+                                <input class="form-control" @bind="editingSaleItem!.ProductSku" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input class="form-control" type="number" @bind="editingSaleItem!.Quantity" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Unit Price</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingSaleItem!.UnitPrice" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Discount Amount</label>
+                        <input class="form-control" type="number" step="0.01" @bind="editingSaleItem!.DiscountAmount" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" @bind="editingSaleItem!.Notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseItemDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveSaleItem">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Sale>? sales;
+    private List<Product> products = new();
+    private bool showDialog = false;
+    private bool showItemDialog = false;
+    private Sale? editingSale;
+    private SaleItem? editingSaleItem;
+    private int editingItemIndex = -1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        products = ProductService.GetAll();
+    }
+
+    private async Task LoadData()
+    {
+        sales = await SaleService.GetAllAsync();
+    }
+
+    private void AddSale()
+    {
+        editingSale = new Sale
+        {
+            IsActive = true,
+            Status = "Pending",
+            SaleDate = DateTime.Now,
+            Items = new List<SaleItem>()
+        };
+        CalculateTotals();
+        showDialog = true;
+    }
+
+    private async Task EditSale(Sale sale)
+    {
+        editingSale = new Sale
+        {
+            Id = sale.Id,
+            InvoiceNumber = sale.InvoiceNumber,
+            SaleDate = sale.SaleDate,
+            CustomerId = sale.CustomerId,
+            CustomerName = sale.CustomerName,
+            CustomerPhone = sale.CustomerPhone,
+            CustomerEmail = sale.CustomerEmail,
+            CustomerAddress = sale.CustomerAddress,
+            SubTotal = sale.SubTotal,
+            TaxAmount = sale.TaxAmount,
+            DiscountAmount = sale.DiscountAmount,
+            TotalAmount = sale.TotalAmount,
+            Status = sale.Status,
+            Notes = sale.Notes,
+            IsActive = sale.IsActive
+        };
+
+        editingSale.Items = await SaleItemService.GetBySaleIdAsync(sale.Id);
+        CalculateTotals();
+        showDialog = true;
+    }
+
+    private void ViewSale(int id)
+    {
+        NavigationManager.NavigateTo($"/sale/sales/{id}");
+    }
+
+    private async Task SaveSale()
+    {
+        if (editingSale == null) return;
+
+        if (editingSale.Id == 0)
+        {
+            await SaleService.AddAsync(editingSale);
+            foreach (var item in editingSale.Items)
+            {
+                item.SaleId = editingSale.Id;
+                await SaleItemService.AddAsync(item);
+            }
+        }
+        else
+        {
+            await SaleService.UpdateAsync(editingSale.Id, editingSale);
+            var existingItems = await SaleItemService.GetBySaleIdAsync(editingSale.Id);
+            foreach (var item in existingItems)
+            {
+                await SaleItemService.DeleteAsync(item.Id);
+            }
+            foreach (var item in editingSale.Items)
+            {
+                item.SaleId = editingSale.Id;
+                await SaleItemService.AddAsync(item);
+            }
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteSale(int id)
+    {
+        await SaleService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingSale = null;
+    }
+
+    private void AddSaleItem()
+    {
+        editingSaleItem = new SaleItem();
+        editingItemIndex = -1;
+        showItemDialog = true;
+    }
+
+    private void EditSaleItem(SaleItem item)
+    {
+        editingSaleItem = new SaleItem
+        {
+            Id = item.Id,
+            SaleId = item.SaleId,
+            ProductId = item.ProductId,
+            ProductName = item.ProductName,
+            ProductSku = item.ProductSku,
+            Quantity = item.Quantity,
+            UnitPrice = item.UnitPrice,
+            TotalPrice = item.TotalPrice,
+            DiscountAmount = item.DiscountAmount,
+            Notes = item.Notes
+        };
+        editingItemIndex = editingSale!.Items.FindIndex(i => i.Id == item.Id);
+        showItemDialog = true;
+    }
+
+    private void DeleteSaleItem(SaleItem item)
+    {
+        editingSale!.Items.Remove(item);
+        CalculateTotals();
+    }
+
+    private void SaveSaleItem()
+    {
+        if (editingSaleItem == null || editingSale == null) return;
+
+        var selectedProduct = ProductService.GetById(editingSaleItem.ProductId);
+        if (selectedProduct != null)
+        {
+            editingSaleItem.ProductName = selectedProduct.Name;
+            editingSaleItem.ProductSku = selectedProduct.SKU;
+            editingSaleItem.UnitPrice = selectedProduct.SalePrice;
+        }
+
+        editingSaleItem.TotalPrice = (editingSaleItem.Quantity * editingSaleItem.UnitPrice) - (editingSaleItem.DiscountAmount ?? 0);
+
+        if (editingItemIndex >= 0)
+        {
+            editingSale.Items[editingItemIndex] = editingSaleItem;
+        }
+        else
+        {
+            editingSale.Items.Add(editingSaleItem);
+        }
+
+        CalculateTotals();
+        CloseItemDialog();
+    }
+
+    private void CloseItemDialog()
+    {
+        showItemDialog = false;
+        editingSaleItem = null;
+        editingItemIndex = -1;
+    }
+
+    private void CalculateTotals()
+    {
+        if (editingSale == null) return;
+
+        editingSale.SubTotal = editingSale.Items.Sum(i => i.TotalPrice);
+        editingSale.TotalAmount = editingSale.SubTotal + editingSale.TaxAmount - editingSale.DiscountAmount;
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Pending" => Color.Info,
+            "Completed" => Color.Success,
+            "Cancelled" => Color.Error,
+            "Refunded" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+}

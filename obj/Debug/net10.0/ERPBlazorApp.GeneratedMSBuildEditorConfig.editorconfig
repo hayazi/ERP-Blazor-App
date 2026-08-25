@@ -86,6 +86,26 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/app/ERP-Blazor-App/CRM/Pages/Activities.razor]
+build_metadata.AdditionalFiles.TargetPath = Q1JNXFBhZ2VzXEFjdGl2aXRpZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/CRM/Pages/Campaigns.razor]
+build_metadata.AdditionalFiles.TargetPath = Q1JNXFBhZ2VzXENhbXBhaWducy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/CRM/Pages/Customers.razor]
+build_metadata.AdditionalFiles.TargetPath = Q1JNXFBhZ2VzXEN1c3RvbWVycy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/CRM/Pages/Leads.razor]
+build_metadata.AdditionalFiles.TargetPath = Q1JNXFBhZ2VzXExlYWRzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/CRM/Pages/Opportunities.razor]
+build_metadata.AdditionalFiles.TargetPath = Q1JNXFBhZ2VzXE9wcG9ydHVuaXRpZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/app/ERP-Blazor-App/HumanResource/Pages/Departments.razor]
 build_metadata.AdditionalFiles.TargetPath = SHVtYW5SZXNvdXJjZVxQYWdlc1xEZXBhcnRtZW50cy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -124,6 +144,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/app/ERP-Blazor-App/Pages/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Sales/Pages/Payments.razor]
+build_metadata.AdditionalFiles.TargetPath = U2FsZXNcUGFnZXNcUGF5bWVudHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/app/ERP-Blazor-App/Sales/Pages/Sales.razor]
+build_metadata.AdditionalFiles.TargetPath = U2FsZXNcUGFnZXNcU2FsZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/app/ERP-Blazor-App/Shared/LanguageSwitcher.razor]

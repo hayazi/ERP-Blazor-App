@@ -1,0 +1,253 @@
+@page "/crm/campaigns"
+@using ERPBlazorApp.CRM.Services
+@using ERPBlazorApp.CRM.Models
+@using MudBlazor
+@inject CampaignService CampaignService
+
+<PageTitle>Campaigns</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Campaigns</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddCampaign">Add Campaign</MudButton>
+            </div>
+
+            @if (campaigns == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Campaign" Items="campaigns" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="Campaign" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Campaign" TProperty="string" Property="x => x.Name" Title="Name" />
+                        <PropertyColumn T="Campaign" TProperty="string" Property="x => x.Type" Title="Type">
+                            <CellTemplate Context="campaign">
+                                <MudBadge Color="GetTypeColor(campaign.Item.Type)" Content="@campaign.Item.Type" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Campaign" TProperty="string" Property="x => x.Status" Title="Status">
+                            <CellTemplate Context="campaign">
+                                <MudBadge Color="GetStatusColor(campaign.Item.Status)" Content="@campaign.Item.Status" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Campaign" TProperty="DateTime" Property="x => x.StartDate" Title="Start Date" />
+                        <PropertyColumn T="Campaign" TProperty="DateTime?" Property="x => x.EndDate" Title="End Date" />
+                        <PropertyColumn T="Campaign" TProperty="decimal" Property="x => x.Budget" Title="Budget">
+                            <CellTemplate Context="campaign">
+                                <MudText Typo="Typo.body1">@campaign.Item.Budget.ToString("C")</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Campaign" TProperty="int" Property="x => x.LeadsGenerated" Title="Leads" />
+                        <PropertyColumn T="Campaign" TProperty="int" Property="x => x.Conversions" Title="Conversions" />
+                        <PropertyColumn T="Campaign" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="campaign">
+                                <MudBadge Color="campaign.Item.IsActive ? Color.Success : Color.Error" Content="@(campaign.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Campaign" Title="Actions">
+                            <CellTemplate Context="campaign">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditCampaign(campaign.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteCampaign(campaign.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingCampaign == null ? "Add" : "Edit") Campaign</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="editingCampaign!.Name" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" @bind="editingCampaign!.Type">
+                                    <option value="Email">Email</option>
+                                    <option value="Social Media">Social Media</option>
+                                    <option value="Event">Event</option>
+                                    <option value="Advertisement">Advertisement</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingCampaign!.Status">
+                                    <option value="Planned">Planned</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input class="form-control" type="date" @bind="editingCampaign!.StartDate" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">End Date</label>
+                                <input class="form-control" type="date" @bind="editingCampaign!.EndDate" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Budget</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingCampaign!.Budget" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Leads Generated</label>
+                                <input class="form-control" type="number" @bind="editingCampaign!.LeadsGenerated" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Conversions</label>
+                                <input class="form-control" type="number" @bind="editingCampaign!.Conversions" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3 form-check mt-4">
+                                <input class="form-check-input" type="checkbox" @bind="editingCampaign!.IsActive" id="activeCheck" />
+                                <label class="form-check-label" for="activeCheck">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="editingCampaign!.Description"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveCampaign">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Campaign>? campaigns;
+    private bool showDialog = false;
+    private Campaign? editingCampaign;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        campaigns = await CampaignService.GetAllAsync();
+    }
+
+    private void AddCampaign()
+    {
+        editingCampaign = new Campaign { IsActive = true, Status = "Planned", StartDate = DateTime.Now };
+        showDialog = true;
+    }
+
+    private void EditCampaign(Campaign campaign)
+    {
+        editingCampaign = new Campaign
+        {
+            Id = campaign.Id,
+            Name = campaign.Name,
+            Type = campaign.Type,
+            Status = campaign.Status,
+            StartDate = campaign.StartDate,
+            EndDate = campaign.EndDate,
+            Budget = campaign.Budget,
+            LeadsGenerated = campaign.LeadsGenerated,
+            Conversions = campaign.Conversions,
+            Description = campaign.Description,
+            IsActive = campaign.IsActive
+        };
+        showDialog = true;
+    }
+
+    private async Task SaveCampaign()
+    {
+        if (editingCampaign == null) return;
+
+        if (editingCampaign.Id == 0)
+        {
+            await CampaignService.AddAsync(editingCampaign);
+        }
+        else
+        {
+            await CampaignService.UpdateAsync(editingCampaign.Id, editingCampaign);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteCampaign(int id)
+    {
+        await CampaignService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingCampaign = null;
+    }
+
+    private Color GetTypeColor(string type)
+    {
+        return type switch
+        {
+            "Email" => Color.Info,
+            "Social Media" => Color.Primary,
+            "Event" => Color.Warning,
+            "Advertisement" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Planned" => Color.Info,
+            "Active" => Color.Success,
+            "Completed" => Color.Primary,
+            "Cancelled" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

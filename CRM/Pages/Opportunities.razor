@@ -1,0 +1,213 @@
+@page "/crm/opportunities"
+@using ERPBlazorApp.CRM.Services
+@using ERPBlazorApp.CRM.Models
+@using MudBlazor
+@inject OpportunityService OpportunityService
+
+<PageTitle>Opportunities</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Opportunities</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddOpportunity">Add Opportunity</MudButton>
+            </div>
+
+            @if (opportunities == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Opportunity" Items="opportunities" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="Opportunity" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Opportunity" TProperty="string" Property="x => x.Title" Title="Title" />
+                        <PropertyColumn T="Opportunity" TProperty="decimal" Property="x => x.EstimatedValue" Title="Value">
+                            <CellTemplate Context="opp">
+                                <MudText Typo="Typo.body1">@opp.Item.EstimatedValue.ToString("C")</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Opportunity" TProperty="string" Property="x => x.Stage" Title="Stage">
+                            <CellTemplate Context="opp">
+                                <MudBadge Color="GetStageColor(opp.Item.Stage)" Content="@opp.Item.Stage" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Opportunity" TProperty="string" Property="x => x.Probability" Title="Probability" />
+                        <PropertyColumn T="Opportunity" TProperty="DateTime?" Property="x => x.ExpectedCloseDate" Title="Expected Close" />
+                        <PropertyColumn T="Opportunity" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="opp">
+                                <MudBadge Color="opp.Item.IsActive ? Color.Success : Color.Error" Content="@(opp.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Opportunity" Title="Actions">
+                            <CellTemplate Context="opp">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditOpportunity(opp.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteOpportunity(opp.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingOpportunity == null ? "Add" : "Edit") Opportunity</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input class="form-control" @bind="editingOpportunity!.Title" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="editingOpportunity!.Description"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estimated Value</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingOpportunity!.EstimatedValue" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Stage</label>
+                                <select class="form-select" @bind="editingOpportunity!.Stage">
+                                    <option value="Prospecting">Prospecting</option>
+                                    <option value="Qualification">Qualification</option>
+                                    <option value="Proposal">Proposal</option>
+                                    <option value="Negotiation">Negotiation</option>
+                                    <option value="Won">Won</option>
+                                    <option value="Lost">Lost</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Probability</label>
+                                <select class="form-select" @bind="editingOpportunity!.Probability">
+                                    <option value="10%">10%</option>
+                                    <option value="25%">25%</option>
+                                    <option value="50%">50%</option>
+                                    <option value="75%">75%</option>
+                                    <option value="90%">90%</option>
+                                    <option value="100%">100%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Expected Close Date</label>
+                                <input class="form-control" type="date" @bind="editingOpportunity!.ExpectedCloseDate" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" @bind="editingOpportunity!.IsActive" id="activeCheck" />
+                        <label class="form-check-label" for="activeCheck">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveOpportunity">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Opportunity>? opportunities;
+    private bool showDialog = false;
+    private Opportunity? editingOpportunity;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        opportunities = await OpportunityService.GetAllAsync();
+    }
+
+    private void AddOpportunity()
+    {
+        editingOpportunity = new Opportunity { IsActive = true, Stage = "Prospecting", Probability = "10%" };
+        showDialog = true;
+    }
+
+    private void EditOpportunity(Opportunity opportunity)
+    {
+        editingOpportunity = new Opportunity
+        {
+            Id = opportunity.Id,
+            Title = opportunity.Title,
+            Description = opportunity.Description,
+            EstimatedValue = opportunity.EstimatedValue,
+            Stage = opportunity.Stage,
+            Probability = opportunity.Probability,
+            ExpectedCloseDate = opportunity.ExpectedCloseDate,
+            IsActive = opportunity.IsActive
+        };
+        showDialog = true;
+    }
+
+    private async Task SaveOpportunity()
+    {
+        if (editingOpportunity == null) return;
+
+        if (editingOpportunity.Id == 0)
+        {
+            await OpportunityService.AddAsync(editingOpportunity);
+        }
+        else
+        {
+            await OpportunityService.UpdateAsync(editingOpportunity.Id, editingOpportunity);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteOpportunity(int id)
+    {
+        await OpportunityService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingOpportunity = null;
+    }
+
+    private Color GetStageColor(string stage)
+    {
+        return stage switch
+        {
+            "Prospecting" => Color.Info,
+            "Qualification" => Color.Warning,
+            "Proposal" => Color.Primary,
+            "Negotiation" => Color.Warning,
+            "Won" => Color.Success,
+            "Lost" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

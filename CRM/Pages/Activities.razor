@@ -1,0 +1,207 @@
+@page "/crm/activities"
+@using ERPBlazorApp.CRM.Services
+@using ERPBlazorApp.CRM.Models
+@using MudBlazor
+@inject ActivityService ActivityService
+
+<PageTitle>Activities</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Activities</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddActivity">Add Activity</MudButton>
+            </div>
+
+            @if (activities == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Activity" Items="activities" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="Activity" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Activity" TProperty="string" Property="x => x.Type" Title="Type">
+                            <CellTemplate Context="activity">
+                                <MudBadge Color="GetTypeColor(activity.Item.Type)" Content="@activity.Item.Type" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Activity" TProperty="string" Property="x => x.Subject" Title="Subject" />
+                        <PropertyColumn T="Activity" TProperty="DateTime" Property="x => x.DueDate" Title="Due Date" />
+                        <PropertyColumn T="Activity" TProperty="string" Property="x => x.Status" Title="Status">
+                            <CellTemplate Context="activity">
+                                <MudBadge Color="GetStatusColor(activity.Item.Status)" Content="@activity.Item.Status" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Activity" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="activity">
+                                <MudBadge Color="activity.Item.IsActive ? Color.Success : Color.Error" Content="@(activity.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Activity" Title="Actions">
+                            <CellTemplate Context="activity">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditActivity(activity.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteActivity(activity.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingActivity == null ? "Add" : "Edit") Activity</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" @bind="editingActivity!.Type">
+                                    <option value="Call">Call</option>
+                                    <option value="Email">Email</option>
+                                    <option value="Meeting">Meeting</option>
+                                    <option value="Task">Task</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingActivity!.Status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="InProgress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <input class="form-control" @bind="editingActivity!.Subject" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="editingActivity!.Description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Due Date</label>
+                        <input class="form-control" type="date" @bind="editingActivity!.DueDate" />
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" @bind="editingActivity!.IsActive" id="activeCheck" />
+                        <label class="form-check-label" for="activeCheck">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveActivity">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Activity>? activities;
+    private bool showDialog = false;
+    private Activity? editingActivity;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        activities = await ActivityService.GetAllAsync();
+    }
+
+    private void AddActivity()
+    {
+        editingActivity = new Activity { IsActive = true, Status = "Pending", DueDate = DateTime.Now.AddDays(7) };
+        showDialog = true;
+    }
+
+    private void EditActivity(Activity activity)
+    {
+        editingActivity = new Activity
+        {
+            Id = activity.Id,
+            Type = activity.Type,
+            Subject = activity.Subject,
+            Description = activity.Description,
+            DueDate = activity.DueDate,
+            Status = activity.Status,
+            IsActive = activity.IsActive
+        };
+        showDialog = true;
+    }
+
+    private async Task SaveActivity()
+    {
+        if (editingActivity == null) return;
+
+        if (editingActivity.Id == 0)
+        {
+            await ActivityService.AddAsync(editingActivity);
+        }
+        else
+        {
+            await ActivityService.UpdateAsync(editingActivity.Id, editingActivity);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteActivity(int id)
+    {
+        await ActivityService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingActivity = null;
+    }
+
+    private Color GetTypeColor(string type)
+    {
+        return type switch
+        {
+            "Call" => Color.Info,
+            "Email" => Color.Primary,
+            "Meeting" => Color.Warning,
+            "Task" => Color.Success,
+            _ => Color.Default
+        };
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Pending" => Color.Info,
+            "InProgress" => Color.Warning,
+            "Completed" => Color.Success,
+            "Cancelled" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

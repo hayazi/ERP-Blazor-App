@@ -10,6 +10,10 @@ using ERPBlazorApp.AAA.Services;
 using ERPBlazorApp.AAA.Auth;
 using ERPBlazorApp.Accounting.Data;
 using ERPBlazorApp.Accounting.Services;
+using ERPBlazorApp.CRM.Data;
+using ERPBlazorApp.CRM.Services;
+using ERPBlazorApp.Sales.Data;
+using ERPBlazorApp.Sales.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Globalization;
@@ -33,6 +37,10 @@ builder.Services.AddDbContext<ERPBlazorApp.Inventory.Data.InventoryDbContext>(op
 builder.Services.AddDbContext<AAADbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddDbContext<AccountingDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
+builder.Services.AddDbContext<CRMDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
+builder.Services.AddDbContext<SaleDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -58,6 +66,13 @@ builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.JournalEntryService>
 builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.FiscalYearService>();
 builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.BudgetService>();
 builder.Services.AddScoped<ERPBlazorApp.Accounting.Services.TrialBalanceService>();
+builder.Services.AddScoped<ERPBlazorApp.CRM.Services.LeadService>();
+builder.Services.AddScoped<ERPBlazorApp.CRM.Services.OpportunityService>();
+builder.Services.AddScoped<ERPBlazorApp.CRM.Services.ActivityService>();
+builder.Services.AddScoped<ERPBlazorApp.CRM.Services.CampaignService>();
+builder.Services.AddScoped<ERPBlazorApp.Sales.Services.SaleService>();
+builder.Services.AddScoped<ERPBlazorApp.Sales.Services.SaleItemService>();
+builder.Services.AddScoped<ERPBlazorApp.Sales.Services.PaymentService>();
 
 var app = builder.Build();
 

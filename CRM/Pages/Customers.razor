@@ -1,0 +1,156 @@
+@page "/crm/customers"
+@using ERPBlazorApp.Inventory.Services
+@using ERPBlazorApp.Inventory.Models
+@using MudBlazor
+@inject CustomerService CustomerService
+
+<PageTitle>Customers</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Customers</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddCustomer">Add Customer</MudButton>
+            </div>
+
+            @if (customers == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Customer" Items="customers" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="Customer" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Customer" TProperty="string" Property="x => x.Name" Title="Name" />
+                        <PropertyColumn T="Customer" TProperty="string" Property="x => x.ContactName" Title="Contact Name" />
+                        <PropertyColumn T="Customer" TProperty="string" Property="x => x.Phone" Title="Phone" />
+                        <PropertyColumn T="Customer" TProperty="string" Property="x => x.Email" Title="Email" />
+                        <PropertyColumn T="Customer" TProperty="string" Property="x => x.Address" Title="Address" />
+                        <TemplateColumn T="Customer" Title="Actions">
+                            <CellTemplate Context="customer">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditCustomer(customer.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteCustomer(customer.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingCustomer == null ? "Add" : "Edit") Customer</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="editingCustomer!.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contact Name</label>
+                        <input class="form-control" @bind="editingCustomer!.ContactName" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <input class="form-control" @bind="editingCustomer!.Phone" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input class="form-control" type="email" @bind="editingCustomer!.Email" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input class="form-control" @bind="editingCustomer!.Address" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveCustomer">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Customer>? customers;
+    private bool showDialog = false;
+    private Customer? editingCustomer;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        customers = CustomerService.GetAll();
+    }
+
+    private void AddCustomer()
+    {
+        editingCustomer = new Customer();
+        showDialog = true;
+    }
+
+    private void EditCustomer(Customer customer)
+    {
+        editingCustomer = new Customer
+        {
+            Id = customer.Id,
+            Name = customer.Name,
+            ContactName = customer.ContactName,
+            Phone = customer.Phone,
+            Email = customer.Email,
+            Address = customer.Address
+        };
+        showDialog = true;
+    }
+
+    private void SaveCustomer()
+    {
+        if (editingCustomer == null) return;
+
+        if (editingCustomer.Id == 0)
+        {
+            CustomerService.Add(editingCustomer);
+        }
+        else
+        {
+            CustomerService.Update(editingCustomer.Id, editingCustomer);
+        }
+
+        CloseDialog();
+        LoadData();
+    }
+
+    private void DeleteCustomer(int id)
+    {
+        CustomerService.Delete(id);
+        LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingCustomer = null;
+    }
+}

@@ -1,0 +1,218 @@
+@page "/crm/leads"
+@using ERPBlazorApp.CRM.Services
+@using ERPBlazorApp.CRM.Models
+@using MudBlazor
+@inject LeadService LeadService
+
+<PageTitle>Leads</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Leads</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddLead">Add Lead</MudButton>
+            </div>
+
+            @if (leads == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Lead" Items="leads" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="Lead" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Lead" TProperty="string" Property="x => x.FirstName" Title="First Name" />
+                        <PropertyColumn T="Lead" TProperty="string" Property="x => x.LastName" Title="Last Name" />
+                        <PropertyColumn T="Lead" TProperty="string" Property="x => x.Email" Title="Email" />
+                        <PropertyColumn T="Lead" TProperty="string" Property="x => x.Phone" Title="Phone" />
+                        <PropertyColumn T="Lead" TProperty="string" Property="x => x.Company" Title="Company" />
+                        <PropertyColumn T="Lead" TProperty="string" Property="x => x.Status" Title="Status">
+                            <CellTemplate Context="lead">
+                                <MudBadge Color="GetStatusColor(lead.Item.Status)" Content="@lead.Item.Status" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Lead" TProperty="string" Property="x => x.Source" Title="Source" />
+                        <PropertyColumn T="Lead" TProperty="bool" Property="x => x.IsActive" Title="Active">
+                            <CellTemplate Context="lead">
+                                <MudBadge Color="lead.Item.IsActive ? Color.Success : Color.Error" Content="@(lead.Item.IsActive ? "Active" : "Inactive")" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn T="Lead" Title="Actions">
+                            <CellTemplate Context="lead">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditLead(lead.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteLead(lead.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingLead == null ? "Add" : "Edit") Lead</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">First Name</label>
+                                <input class="form-control" @bind="editingLead!.FirstName" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input class="form-control" @bind="editingLead!.LastName" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input class="form-control" type="email" @bind="editingLead!.Email" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <input class="form-control" @bind="editingLead!.Phone" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Company</label>
+                        <input class="form-control" @bind="editingLead!.Company" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingLead!.Status">
+                                    <option value="New">New</option>
+                                    <option value="Contacted">Contacted</option>
+                                    <option value="Qualified">Qualified</option>
+                                    <option value="Converted">Converted</option>
+                                    <option value="Lost">Lost</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Source</label>
+                                <input class="form-control" @bind="editingLead!.Source" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" @bind="editingLead!.Notes"></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input class="form-check-input" type="checkbox" @bind="editingLead!.IsActive" id="activeCheck" />
+                        <label class="form-check-label" for="activeCheck">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveLead">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Lead>? leads;
+    private bool showDialog = false;
+    private Lead? editingLead;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        leads = await LeadService.GetAllAsync();
+    }
+
+    private void AddLead()
+    {
+        editingLead = new Lead { IsActive = true, Status = "New" };
+        showDialog = true;
+    }
+
+    private void EditLead(Lead lead)
+    {
+        editingLead = new Lead
+        {
+            Id = lead.Id,
+            FirstName = lead.FirstName,
+            LastName = lead.LastName,
+            Email = lead.Email,
+            Phone = lead.Phone,
+            Company = lead.Company,
+            Status = lead.Status,
+            Source = lead.Source,
+            Notes = lead.Notes,
+            IsActive = lead.IsActive
+        };
+        showDialog = true;
+    }
+
+    private async Task SaveLead()
+    {
+        if (editingLead == null) return;
+
+        if (editingLead.Id == 0)
+        {
+            await LeadService.AddAsync(editingLead);
+        }
+        else
+        {
+            await LeadService.UpdateAsync(editingLead.Id, editingLead);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeleteLead(int id)
+    {
+        await LeadService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingLead = null;
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "New" => Color.Info,
+            "Contacted" => Color.Warning,
+            "Qualified" => Color.Primary,
+            "Converted" => Color.Success,
+            "Lost" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

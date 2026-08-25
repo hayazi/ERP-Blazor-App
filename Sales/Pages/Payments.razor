@@ -1,0 +1,225 @@
+@page "/sale/payments"
+@using ERPBlazorApp.Sales.Services
+@using ERPBlazorApp.Sales.Models
+@using MudBlazor
+@inject PaymentService PaymentService
+
+<PageTitle>Payments</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Elevation="2">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <MudText Typo="Typo.h6">Payments</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddPayment">Add Payment</MudButton>
+            </div>
+
+            @if (payments == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else
+            {
+                <MudDataGrid T="Payment" Items="payments" Filterable="true" ShowColumnOptions="true" Sortable="true" Dense="true" Hover="true" Bordered="true">
+                    <Columns>
+                        <PropertyColumn T="Payment" TProperty="int" Property="x => x.Id" Title="ID" />
+                        <PropertyColumn T="Payment" TProperty="int" Property="x => x.SaleId" Title="Sale ID" />
+                        <PropertyColumn T="Payment" TProperty="decimal" Property="x => x.Amount" Title="Amount">
+                            <CellTemplate Context="payment">
+                                <MudText Typo="Typo.body1">@payment.Item.Amount.ToString("C")</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Payment" TProperty="string" Property="x => x.PaymentMethod" Title="Method">
+                            <CellTemplate Context="payment">
+                                <MudBadge Color="GetMethodColor(payment.Item.PaymentMethod)" Content="@payment.Item.PaymentMethod" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Payment" TProperty="string" Property="x => x.Status" Title="Status">
+                            <CellTemplate Context="payment">
+                                <MudBadge Color="GetStatusColor(payment.Item.Status)" Content="@payment.Item.Status" />
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn T="Payment" TProperty="string" Property="x => x.ReferenceNumber" Title="Reference" />
+                        <PropertyColumn T="Payment" TProperty="DateTime?" Property="x => x.PaymentDate" Title="Date" />
+                        <TemplateColumn T="Payment" Title="Actions">
+                            <CellTemplate Context="payment">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditPayment(payment.Item)" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeletePayment(payment.Item.Id)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager PageSizeOptions="new int[] { 5, 10, 20 }" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@if (showDialog)
+{
+    <div class="modal" style="display:block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingPayment == null ? "Add" : "Edit") Payment</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sale ID</label>
+                                <input class="form-control" type="number" @bind="editingPayment!.SaleId" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Amount</label>
+                                <input class="form-control" type="number" step="0.01" @bind="editingPayment!.Amount" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-select" @bind="editingPayment!.PaymentMethod">
+                                    <option value="Cash">Cash</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Transfer">Transfer</option>
+                                    <option value="Check">Check</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" @bind="editingPayment!.Status">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Failed">Failed</option>
+                                    <option value="Refunded">Refunded</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Reference Number</label>
+                                <input class="form-control" @bind="editingPayment!.ReferenceNumber" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Payment Date</label>
+                                <input class="form-control" type="date" @bind="editingPayment!.PaymentDate" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" @bind="editingPayment!.Notes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseDialog">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SavePayment">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Payment>? payments;
+    private bool showDialog = false;
+    private Payment? editingPayment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        payments = await PaymentService.GetAllAsync();
+    }
+
+    private void AddPayment()
+    {
+        editingPayment = new Payment { Status = "Pending", PaymentMethod = "Cash" };
+        showDialog = true;
+    }
+
+    private void EditPayment(Payment payment)
+    {
+        editingPayment = new Payment
+        {
+            Id = payment.Id,
+            SaleId = payment.SaleId,
+            Amount = payment.Amount,
+            PaymentMethod = payment.PaymentMethod,
+            Status = payment.Status,
+            ReferenceNumber = payment.ReferenceNumber,
+            PaymentDate = payment.PaymentDate,
+            Notes = payment.Notes
+        };
+        showDialog = true;
+    }
+
+    private async Task SavePayment()
+    {
+        if (editingPayment == null) return;
+
+        if (editingPayment.Id == 0)
+        {
+            await PaymentService.AddAsync(editingPayment);
+        }
+        else
+        {
+            await PaymentService.UpdateAsync(editingPayment.Id, editingPayment);
+        }
+
+        CloseDialog();
+        await LoadData();
+    }
+
+    private async Task DeletePayment(int id)
+    {
+        await PaymentService.DeleteAsync(id);
+        await LoadData();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editingPayment = null;
+    }
+
+    private Color GetMethodColor(string method)
+    {
+        return method switch
+        {
+            "Cash" => Color.Success,
+            "Card" => Color.Info,
+            "Transfer" => Color.Primary,
+            "Check" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Pending" => Color.Info,
+            "Completed" => Color.Success,
+            "Failed" => Color.Error,
+            "Refunded" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+}
