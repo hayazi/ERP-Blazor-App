@@ -1,2 +1,7 @@
-**This app had built totaly with AI Agent (kilo)**
-Used MS Sqlserver as RDBSM
+# This App has built totally with AI Agent (kilo)
+> **Used Technologies**
+> - Used **MS Sql Server** as ***RDBSM***
+> 
+> - Used **.Net Core and Blazor** as ***Tech Stack*** (Server mode)
+>    
+> *Everything* is going according to **plan**.
