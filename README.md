@@ -2,6 +2,6 @@
 > **Used Technologies**
 > - Used **MS Sql Server** as ***RDBSM***
 > 
-> - Used **.Net Core and Blazor** as ***Tech Stack*** (sever)
+> - Used **.Net Core and Blazor** as ***Tech Stack*** (Server mode)
 >    
 > *Everything* is going according to **plan**.
