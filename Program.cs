@@ -18,6 +18,10 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using Hangfire;
+using Hangfire.SqlServer;
+using Hangfire.Dashboard;
+using ERPBlazorApp.Hangfire.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +46,25 @@ builder.Services.AddDbContext<CRMDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
 builder.Services.AddDbContext<SaleDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERPBlazorDb")));
+
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("ERPBlazorDb"), new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.Zero,
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true
+    }));
+
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = Environment.ProcessorCount * 5;
+    options.Queues = new[] { "default", "sales", "inventory", "accounting" };
+});
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("redis");
@@ -107,7 +130,28 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     }
 });
 
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() },
+    DashboardTitle = "ERP Blazor App - Background Jobs"
+});
+
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+
+using (var scope = app.Services.CreateScope())
+{
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    
+    recurringJobManager.AddOrUpdate<ERPBlazorApp.Hangfire.Jobs.InventoryJobs>(
+        "cleanup-old-kardex",
+        job => job.CleanupOldKardexRecords(),
+        Cron.Daily);
+    
+    recurringJobManager.AddOrUpdate<ERPBlazorApp.Hangfire.Jobs.SaleJobs>(
+        "generate-daily-sales-report",
+        job => job.GenerateDailySalesReport(),
+        Cron.Daily);
+}
 
 app.Run();

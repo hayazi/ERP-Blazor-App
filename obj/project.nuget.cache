@@ -1,11 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "RaEou4XF7Uc=",
+  "dgSpecHash": "869rUE1s/qU=",
   "success": true,
   "projectFilePath": "D:\\app\\ERP-Blazor-App\\ERPBlazorApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\H_Ayazi\\.nuget\\packages\\azure.core\\1.50.0\\azure.core.1.50.0.nupkg.sha512",
     "C:\\Users\\H_Ayazi\\.nuget\\packages\\azure.identity\\1.17.1\\azure.identity.1.17.1.nupkg.sha512",
+    "C:\\Users\\H_Ayazi\\.nuget\\packages\\hangfire.aspnetcore\\1.8.15\\hangfire.aspnetcore.1.8.15.nupkg.sha512",
+    "C:\\Users\\H_Ayazi\\.nuget\\packages\\hangfire.core\\1.8.15\\hangfire.core.1.8.15.nupkg.sha512",
+    "C:\\Users\\H_Ayazi\\.nuget\\packages\\hangfire.netcore\\1.8.15\\hangfire.netcore.1.8.15.nupkg.sha512",
+    "C:\\Users\\H_Ayazi\\.nuget\\packages\\hangfire.sqlserver\\1.8.15\\hangfire.sqlserver.1.8.15.nupkg.sha512",
     "C:\\Users\\H_Ayazi\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\H_Ayazi\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.11\\microsoft.aspnetcore.app.internal.assets.10.0.11.nupkg.sha512",
     "C:\\Users\\H_Ayazi\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\8.0.0\\microsoft.bcl.asyncinterfaces.8.0.0.nupkg.sha512",

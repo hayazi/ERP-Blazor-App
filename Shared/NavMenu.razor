@@ -154,6 +154,11 @@
             </div>
         </div>
         <div class="nav-item px-3">
+            <NavLink class="nav-link" href="hangfire" target="_blank">
+                <span class="oi oi-cog" aria-hidden="true"></span> @if (!Collapsed) { <span>Background Jobs</span> }
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
             <div class="nav-link-wrapper">
                 <a class="nav-link flex-grow-1" href="javascript:void(0)" @onclick="ToggleAAASubMenu">
                     <span class="oi oi-lock-locked" aria-hidden="true"></span> @if (!Collapsed) { <span>@L["AAA"]</span> }

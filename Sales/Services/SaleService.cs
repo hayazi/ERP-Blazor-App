@@ -21,6 +21,7 @@ public class SaleService
         return await _context.Sales
             .Include(s => s.Items)
             .Include(s => s.Payments)
+            .AsSplitQuery()
             .ToListAsync();
     }
 
@@ -30,6 +31,7 @@ public class SaleService
         return await _context.Sales
             .Include(s => s.Items)
             .Include(s => s.Payments)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -39,6 +41,7 @@ public class SaleService
         return await _context.Sales
             .Include(s => s.Items)
             .Include(s => s.Payments)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.InvoiceNumber == invoiceNumber);
     }
 

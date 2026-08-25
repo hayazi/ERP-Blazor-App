@@ -49,6 +49,7 @@ public class DepartmentService
             .Include(d => d.ParentDepartment)
             .Include(d => d.SubDepartments)
             .Include(d => d.Employees)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(d => d.Id == id);
     }
 
