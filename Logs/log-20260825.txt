@@ -108,3 +108,17 @@ CREATE TABLE [Customers] (
 [10:24:31 INF] Server rnd-01:27112:ae8df9f0 all the dispatchers started
 [10:24:31 WRN] Failed to determine the https port for redirect.
 [10:29:31 INF] 2 servers were removed due to timeout
+[10:53:20 INF] Start installing Hangfire SQL objects...
+[10:53:20 INF] Hangfire SQL objects installed.
+[10:53:21 INF] Starting Hangfire Server using job storage: 'SQL Server: .@ERPBlazorDb'
+[10:53:21 INF] Using the following options for SQL Server job storage: Queue poll interval: 00:00:00.
+[10:53:21 INF] Using the following options for Hangfire Server:
+    Worker count: 60
+    Listening queues: 'default', 'sales', 'inventory', 'accounting'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+[10:53:21 INF] Server rnd-01:36536:298fb64c successfully announced in 12 2681 ms
+[10:53:21 INF] Server rnd-01:36536:298fb64c is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, SqlServerHeartbeatProcess, Worker, DelayedJobScheduler, RecurringJobScheduler...
+[10:53:21 INF] 1 servers were removed due to timeout
+[10:53:21 INF] Server rnd-01:36536:298fb64c all the dispatchers started
+[10:53:28 WRN] Failed to determine the https port for redirect.

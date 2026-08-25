@@ -22,6 +22,8 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Hangfire.Dashboard;
 using ERPBlazorApp.Hangfire.Filters;
+using ERPBlazorApp.RabbitMQ.Configuration;
+using ERPBlazorApp.RabbitMQ.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +67,9 @@ builder.Services.AddHangfireServer(options =>
     options.WorkerCount = Environment.ProcessorCount * 5;
     options.Queues = new[] { "default", "sales", "inventory", "accounting" };
 });
+
+builder.Services.Configure<RabbitMQConfiguration>(builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("redis");

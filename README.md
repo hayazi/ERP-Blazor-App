@@ -13,8 +13,63 @@
 > - Used **Hangfire** as ***Background Job Processing***
 >
 > - Used **Redis** as ***Caching Provider***
+>
+> - Used **RabbitMQ** as ***Message Broker*** for async communication
 
-## Project Structure
+## Message Queue (RabbitMQ)
+
+The application uses RabbitMQ for asynchronous messaging between modules:
+
+- **Exchange**: `erp-blazor` (Topic exchange)
+- **Queues**:
+  - `erp-blazor-sales` - Sales-related events
+  - `erp-blazor-inventory` - Inventory-related events
+  - `erp-blazor-notifications` - System notifications
+- **Routing Keys**:
+  - `sales.*` - All sales events
+  - `inventory.*` - All inventory events
+  - `notification.*` - All notification events
+
+### RabbitMQ Configuration
+
+Configure RabbitMQ settings in `appsettings.json`:
+```json
+"RabbitMQ": {
+  "HostName": "localhost",
+  "Port": 5672,
+  "UserName": "guest",
+  "Password": "guest",
+  "VirtualHost": "/",
+  "RetryCount": 3,
+  "RetryDelayMilliseconds": 500,
+  "UseBackgroundThreads": true
+}
+```
+
+### Using RabbitMQ Service
+
+```csharp
+// Publish a message
+var rabbitMQService = scope.ServiceProvider.GetRequiredService<RabbitMQService>();
+await rabbitMQService.PublishAsync("sales.created", JsonSerializer.Serialize(sale));
+
+// Consume messages
+rabbitMQService.StartConsuming("erp-blazor-sales", async (message) =>
+{
+    // Process message
+    await Task.CompletedTask();
+});
+```
+
+## Getting Started
+
+### Prerequisites
+- .NET 10 SDK
+- SQL Server
+- Redis (for caching)
+- RabbitMQ (for message queuing)
+
+### Configuration
 
 The solution follows a modular architecture with separate projects for each business domain:
 

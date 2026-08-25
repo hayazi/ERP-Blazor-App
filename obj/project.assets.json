@@ -1014,6 +1014,19 @@
           }
         }
       },
+      "RabbitMQ.Client/6.8.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/RabbitMQ.Client.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/RabbitMQ.Client.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Serilog/4.3.0": {
         "type": "package",
         "compile": {
@@ -3384,6 +3397,23 @@
         "pipelines.sockets.unofficial.nuspec"
       ]
     },
+    "RabbitMQ.Client/6.8.1": {
+      "sha512": "jNsmGgmCNw2S/NzskeN2ijtGywtH4Sk/G6jWUTD5sY9SrC27Xz6BsLIiB8hdsfjeyWCa4j4GvCIGkpE8wrjU1Q==",
+      "type": "package",
+      "path": "rabbitmq.client/6.8.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net462/RabbitMQ.Client.dll",
+        "lib/net462/RabbitMQ.Client.xml",
+        "lib/netstandard2.0/RabbitMQ.Client.dll",
+        "lib/netstandard2.0/RabbitMQ.Client.xml",
+        "rabbitmq.client.6.8.1.nupkg.sha512",
+        "rabbitmq.client.nuspec"
+      ]
+    },
     "Serilog/4.3.0": {
       "sha512": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ==",
       "type": "package",
@@ -3990,6 +4020,7 @@
       "Microsoft.EntityFrameworkCore.Tools >= 10.0.11",
       "Microsoft.Extensions.Caching.StackExchangeRedis >= 10.0.11",
       "MudBlazor >= 9.8.0",
+      "RabbitMQ.Client >= 6.8.1",
       "Serilog.AspNetCore >= 10.0.0",
       "Serilog.Settings.Configuration >= 10.0.1",
       "Serilog.Sinks.Console >= 6.1.1",
@@ -4090,6 +4121,10 @@
           "MudBlazor": {
             "target": "Package",
             "version": "[9.8.0, )"
+          },
+          "RabbitMQ.Client": {
+            "target": "Package",
+            "version": "[6.8.1, )"
           },
           "Serilog.AspNetCore": {
             "target": "Package",

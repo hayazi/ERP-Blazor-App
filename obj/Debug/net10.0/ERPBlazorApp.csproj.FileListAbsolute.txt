@@ -229,3 +229,4 @@ D:\app\ERP-Blazor-App\bin\Debug\net10.0\sv\Hangfire.Core.resources.dll
 D:\app\ERP-Blazor-App\bin\Debug\net10.0\tr-TR\Hangfire.Core.resources.dll
 D:\app\ERP-Blazor-App\bin\Debug\net10.0\zh-TW\Hangfire.Core.resources.dll
 D:\app\ERP-Blazor-App\bin\Debug\net10.0\zh\Hangfire.Core.resources.dll
+D:\app\ERP-Blazor-App\bin\Debug\net10.0\RabbitMQ.Client.dll
