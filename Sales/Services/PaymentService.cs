@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.Sales.Models;
 using ERPBlazorApp.Sales.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.Sales.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.Sales.Services;
 public class PaymentService
 {
     private readonly SaleDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<PaymentService>();
 
-    public PaymentService(SaleDbContext context)
+    public PaymentService(SaleDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Payment>> GetAllAsync()
@@ -39,6 +42,7 @@ public class PaymentService
         payment.CreatedAt = DateTime.Now;
         _context.Payments.Add(payment);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishPaymentCreatedAsync(payment.Id, payment.SaleId, payment.Amount, payment.PaymentMethod, payment.Status, payment.ReferenceNumber ?? string.Empty, payment.PaymentDate);
         Logger.Information("Payment added with id {PaymentId}", payment.Id);
     }
 
@@ -56,6 +60,7 @@ public class PaymentService
         existing.Notes = payment.Notes;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishPaymentUpdatedAsync(id, payment.SaleId, payment.Amount, payment.PaymentMethod, payment.Status, payment.ReferenceNumber ?? string.Empty, payment.PaymentDate);
         Logger.Information("Payment {PaymentId} updated successfully", id);
     }
 
@@ -67,6 +72,7 @@ public class PaymentService
         {
             _context.Payments.Remove(payment);
             await _context.SaveChangesAsync();
+            await _eventPublisher.PublishPaymentDeletedAsync(id, payment.SaleId, payment.ReferenceNumber ?? string.Empty);
             Logger.Information("Payment {PaymentId} deleted", id);
         }
     }

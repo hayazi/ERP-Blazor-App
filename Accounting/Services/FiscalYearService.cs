@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.Accounting.Models;
 using ERPBlazorApp.Accounting.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.Accounting.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.Accounting.Services;
 public class FiscalYearService
 {
     private readonly AccountingDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<FiscalYearService>();
 
-    public FiscalYearService(AccountingDbContext context)
+    public FiscalYearService(AccountingDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<FiscalYear>> GetAllAsync()
@@ -36,6 +39,7 @@ public class FiscalYearService
         Logger.Information("Adding fiscal year {FiscalYearName}", fiscalYear.Name);
         _context.FiscalYears.Add(fiscalYear);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishFiscalYearCreatedAsync(fiscalYear.Id, fiscalYear.Name, fiscalYear.StartDate, fiscalYear.EndDate, fiscalYear.IsActive);
         Logger.Information("Fiscal year added with id {FiscalYearId}", fiscalYear.Id);
     }
 
@@ -52,6 +56,7 @@ public class FiscalYearService
         existing.IsClosed = fiscalYear.IsClosed;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishFiscalYearUpdatedAsync(id, fiscalYear.Name, fiscalYear.StartDate, fiscalYear.EndDate, fiscalYear.IsActive);
         Logger.Information("Fiscal year {FiscalYearId} updated successfully", id);
     }
 

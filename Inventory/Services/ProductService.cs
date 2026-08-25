@@ -1,4 +1,5 @@
 using ERPBlazorApp.Inventory.Models;
+using ERPBlazorApp.RabbitMQ.Services;
 
 namespace ERPBlazorApp.Inventory.Services;
 
@@ -6,9 +7,11 @@ public class ProductService
 {
     private List<Product> _products;
     private List<Category> _categories;
+    private readonly EventPublisher _eventPublisher;
 
-    public ProductService()
+    public ProductService(EventPublisher eventPublisher)
     {
+        _eventPublisher = eventPublisher;
         _categories = InventorySampleData.GetCategories();
         _products = InventorySampleData.GetProducts();
         _products.ForEach(p => p.Category = _categories.FirstOrDefault(c => c.Id == p.CategoryId));
@@ -23,6 +26,7 @@ public class ProductService
         product.Id = _products.Any() ? _products.Max(p => p.Id) + 1 : 1;
         product.Category = _categories.FirstOrDefault(c => c.Id == product.CategoryId);
         _products.Add(product);
+        _eventPublisher.PublishProductCreatedAsync(product.Id, product.Name, product.SKU, product.PurchasePrice, product.SalePrice, product.CurrentStock, product.CategoryId).Wait();
     }
 
     public void Update(int id, Product product)
@@ -40,6 +44,7 @@ public class ProductService
         existing.CurrentStock = product.CurrentStock;
         existing.MinStock = product.MinStock;
         existing.IsActive = product.IsActive;
+        _eventPublisher.PublishProductUpdatedAsync(id, product.Name, product.SKU, product.PurchasePrice, product.SalePrice, product.CurrentStock, product.CategoryId).Wait();
     }
 
     public void Delete(int id)
@@ -48,6 +53,7 @@ public class ProductService
         if (product != null)
         {
             _products.Remove(product);
+            _eventPublisher.PublishProductDeletedAsync(id, product.Name).Wait();
         }
     }
 }

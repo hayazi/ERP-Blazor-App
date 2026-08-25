@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.Accounting.Models;
 using ERPBlazorApp.Accounting.Data;
 using ERPBlazorApp.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.Accounting.Services;
@@ -10,12 +11,14 @@ public class ChartOfAccountService
 {
     private readonly AccountingDbContext _context;
     private readonly CacheService _cache;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<ChartOfAccountService>();
 
-    public ChartOfAccountService(AccountingDbContext context, CacheService cache)
+    public ChartOfAccountService(AccountingDbContext context, CacheService cache, EventPublisher eventPublisher)
     {
         _context = context;
         _cache = cache;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<ChartOfAccount>> GetAllAsync()
@@ -48,6 +51,7 @@ public class ChartOfAccountService
         _context.ChartOfAccounts.Add(account);
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("chartofaccounts:all");
+        await _eventPublisher.PublishChartOfAccountCreatedAsync(account.Id, account.Code, account.Name, account.Type, account.IsActive);
         Logger.Information("Chart of account added with id {AccountId}", account.Id);
     }
 
@@ -66,6 +70,7 @@ public class ChartOfAccountService
 
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("chartofaccounts:all");
+        await _eventPublisher.PublishChartOfAccountUpdatedAsync(id, account.Code, account.Name, account.Type, account.IsActive);
         Logger.Information("Chart of account {AccountId} updated successfully", id);
     }
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.CRM.Models;
 using ERPBlazorApp.CRM.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.CRM.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.CRM.Services;
 public class CampaignService
 {
     private readonly CRMDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<CampaignService>();
 
-    public CampaignService(CRMDbContext context)
+    public CampaignService(CRMDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Campaign>> GetAllAsync()
@@ -32,6 +35,7 @@ public class CampaignService
         Logger.Information("Adding campaign {CampaignName}", campaign.Name);
         _context.Campaigns.Add(campaign);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishCampaignCreatedAsync(campaign.Id, campaign.Name, campaign.Type, campaign.Status, campaign.StartDate, campaign.Budget);
         Logger.Information("Campaign added with id {CampaignId}", campaign.Id);
     }
 
@@ -53,6 +57,7 @@ public class CampaignService
         existing.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishCampaignUpdatedAsync(id, campaign.Name, campaign.Type, campaign.Status, campaign.StartDate, campaign.Budget);
         Logger.Information("Campaign {CampaignId} updated successfully", id);
     }
 
@@ -64,6 +69,7 @@ public class CampaignService
         {
             _context.Campaigns.Remove(campaign);
             await _context.SaveChangesAsync();
+            await _eventPublisher.PublishCampaignDeletedAsync(id, campaign.Name);
             Logger.Information("Campaign {CampaignId} deleted", id);
         }
     }

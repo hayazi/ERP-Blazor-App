@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.Accounting.Models;
 using ERPBlazorApp.Accounting.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.Accounting.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.Accounting.Services;
 public class JournalEntryService
 {
     private readonly AccountingDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<JournalEntryService>();
 
-    public JournalEntryService(AccountingDbContext context)
+    public JournalEntryService(AccountingDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<JournalEntry>> GetAllAsync()
@@ -53,6 +56,7 @@ public class JournalEntryService
         Logger.Information("Adding journal entry {Reference}", journalEntry.Reference);
         _context.JournalEntries.Add(journalEntry);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishJournalEntryCreatedAsync(journalEntry.Id, journalEntry.Reference, journalEntry.Date, journalEntry.Status, journalEntry.TotalDebit, journalEntry.TotalCredit);
         Logger.Information("Journal entry added with id {JournalEntryId}", journalEntry.Id);
     }
 
@@ -68,6 +72,7 @@ public class JournalEntryService
         existing.Status = journalEntry.Status;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishJournalEntryUpdatedAsync(id, journalEntry.Reference, journalEntry.Date, journalEntry.Status, journalEntry.TotalDebit, journalEntry.TotalCredit);
         Logger.Information("Journal entry {JournalEntryId} updated successfully", id);
     }
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.HumanResource.Models;
 using ERPBlazorApp.HumanResource.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.HumanResource.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.HumanResource.Services;
 public class DepartmentService
 {
     private readonly HumanResourceDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<DepartmentService>();
 
-    public DepartmentService(HumanResourceDbContext context)
+    public DepartmentService(HumanResourceDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Department>> GetAllRootsAsync()
@@ -75,6 +78,7 @@ public class DepartmentService
         }
         _context.Departments.Add(department);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishDepartmentCreatedAsync(department.Id, department.Name, department.Description, department.ManagerId, department.ParentDepartmentId);
         Logger.Information("Department {DepartmentName} added with id {DepartmentId}", department.Name, department.Id);
     }
 
@@ -92,6 +96,7 @@ public class DepartmentService
         existing.ParentDepartment = department.ParentDepartmentId.HasValue ? await _context.Departments.FindAsync(department.ParentDepartmentId.Value) : null;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishDepartmentUpdatedAsync(id, department.Name, department.Description, department.ManagerId, department.ParentDepartmentId);
         Logger.Information("Department {DepartmentId} updated successfully", id);
     }
 
@@ -107,6 +112,7 @@ public class DepartmentService
             }
             _context.Departments.Remove(department);
             await _context.SaveChangesAsync();
+            await _eventPublisher.PublishDepartmentDeletedAsync(id, department.Name);
             Logger.Information("Department {DepartmentId} deleted", id);
         }
     }

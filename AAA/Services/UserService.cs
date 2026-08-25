@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.AAA.Models;
 using ERPBlazorApp.AAA.Data;
 using ERPBlazorApp.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.AAA.Services;
@@ -10,12 +11,14 @@ public class UserService
 {
     private readonly AAADbContext _context;
     private readonly CacheService _cache;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<UserService>();
 
-    public UserService(AAADbContext context, CacheService cache)
+    public UserService(AAADbContext context, CacheService cache, EventPublisher eventPublisher)
     {
         _context = context;
         _cache = cache;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<User>> GetAllAsync()
@@ -58,6 +61,7 @@ public class UserService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("users:all");
+        await _eventPublisher.PublishUserCreatedAsync(user.Id, user.Username, user.Email, user.IsActive);
         Logger.Information("User added with id {UserId}", user.Id);
     }
 
@@ -79,6 +83,7 @@ public class UserService
 
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("users:all");
+        await _eventPublisher.PublishUserUpdatedAsync(id, user.Username, user.Email, user.IsActive);
         Logger.Information("User {UserId} updated successfully", id);
     }
 
@@ -91,6 +96,7 @@ public class UserService
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             await _cache.RemoveAsync("users:all");
+            await _eventPublisher.PublishUserDeletedAsync(id, user.Username);
             Logger.Information("User {UserId} deleted", id);
         }
     }

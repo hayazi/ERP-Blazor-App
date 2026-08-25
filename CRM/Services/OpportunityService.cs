@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.CRM.Models;
 using ERPBlazorApp.CRM.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.CRM.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.CRM.Services;
 public class OpportunityService
 {
     private readonly CRMDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<OpportunityService>();
 
-    public OpportunityService(CRMDbContext context)
+    public OpportunityService(CRMDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Opportunity>> GetAllAsync()
@@ -36,6 +39,7 @@ public class OpportunityService
         Logger.Information("Adding opportunity {OpportunityTitle}", opportunity.Title);
         _context.Opportunities.Add(opportunity);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishOpportunityCreatedAsync(opportunity.Id, opportunity.Title, opportunity.EstimatedValue, opportunity.Stage, opportunity.Probability);
         Logger.Information("Opportunity added with id {OpportunityId}", opportunity.Id);
     }
 
@@ -57,6 +61,7 @@ public class OpportunityService
         existing.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishOpportunityUpdatedAsync(id, opportunity.Title, opportunity.EstimatedValue, opportunity.Stage, opportunity.Probability);
         Logger.Information("Opportunity {OpportunityId} updated successfully", id);
     }
 
@@ -68,6 +73,7 @@ public class OpportunityService
         {
             _context.Opportunities.Remove(opportunity);
             await _context.SaveChangesAsync();
+            await _eventPublisher.PublishOpportunityDeletedAsync(id, opportunity.Title);
             Logger.Information("Opportunity {OpportunityId} deleted", id);
         }
     }

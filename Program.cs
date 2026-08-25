@@ -70,6 +70,7 @@ builder.Services.AddHangfireServer(options =>
 
 builder.Services.Configure<RabbitMQConfiguration>(builder.Configuration.GetSection("RabbitMQ"));
 builder.Services.AddSingleton<RabbitMQService>();
+builder.Services.AddSingleton<EventPublisher>();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("redis");

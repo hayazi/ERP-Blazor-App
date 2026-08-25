@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.HumanResource.Models;
 using ERPBlazorApp.HumanResource.Data;
 using ERPBlazorApp.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.HumanResource.Services;
@@ -10,12 +11,14 @@ public class EmployeeService
 {
     private readonly HumanResourceDbContext _context;
     private readonly CacheService _cache;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<EmployeeService>();
 
-    public EmployeeService(HumanResourceDbContext context, CacheService cache)
+    public EmployeeService(HumanResourceDbContext context, CacheService cache, EventPublisher eventPublisher)
     {
         _context = context;
         _cache = cache;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Employee>> GetAllAsync()
@@ -48,6 +51,7 @@ public class EmployeeService
         _context.Employees.Add(employee);
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("employees:all");
+        await _eventPublisher.PublishEmployeeCreatedAsync(employee.Id, employee.FirstName, employee.LastName, employee.Email, employee.Phone, employee.Position, employee.DepartmentId, employee.Salary, employee.HireDate);
         Logger.Information("Employee added with id {EmployeeId}", employee.Id);
     }
 
@@ -70,6 +74,7 @@ public class EmployeeService
 
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("employees:all");
+        await _eventPublisher.PublishEmployeeUpdatedAsync(id, employee.FirstName, employee.LastName, employee.Email, employee.Phone, employee.Position, employee.DepartmentId, employee.Salary);
         Logger.Information("Employee {EmployeeId} updated successfully", id);
     }
 
@@ -82,6 +87,7 @@ public class EmployeeService
             _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
             await _cache.RemoveAsync("employees:all");
+            await _eventPublisher.PublishEmployeeDeletedAsync(id, employee.FirstName, employee.LastName);
             Logger.Information("Employee {EmployeeId} deleted", id);
         }
     }

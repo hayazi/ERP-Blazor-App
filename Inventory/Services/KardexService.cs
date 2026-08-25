@@ -1,4 +1,5 @@
 using ERPBlazorApp.Inventory.Models;
+using ERPBlazorApp.RabbitMQ.Services;
 
 namespace ERPBlazorApp.Inventory.Services;
 
@@ -6,9 +7,11 @@ public class KardexService
 {
     private List<Kardex> _kardex;
     private List<Product> _products;
+    private readonly EventPublisher _eventPublisher;
 
-    public KardexService()
+    public KardexService(EventPublisher eventPublisher)
     {
+        _eventPublisher = eventPublisher;
         _products = InventorySampleData.GetProducts();
         _kardex = InventorySampleData.GetKardex();
         foreach (var item in _kardex)

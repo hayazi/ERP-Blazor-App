@@ -1,13 +1,16 @@
 using ERPBlazorApp.Inventory.Models;
+using ERPBlazorApp.RabbitMQ.Services;
 
 namespace ERPBlazorApp.Inventory.Services;
 
 public class CustomerService
 {
     private List<Customer> _customers;
+    private readonly EventPublisher _eventPublisher;
 
-    public CustomerService()
+    public CustomerService(EventPublisher eventPublisher)
     {
+        _eventPublisher = eventPublisher;
         _customers = InventorySampleData.GetCustomers();
     }
 
@@ -18,6 +21,7 @@ public class CustomerService
     {
         customer.Id = _customers.Any() ? _customers.Max(c => c.Id) + 1 : 1;
         _customers.Add(customer);
+        _eventPublisher.PublishCustomerCreatedAsync(customer.Id, customer.Name, customer.ContactName, customer.Phone, customer.Email, customer.Address).Wait();
     }
 
     public void Update(int id, Customer customer)
@@ -29,6 +33,7 @@ public class CustomerService
         existing.Phone = customer.Phone;
         existing.Email = customer.Email;
         existing.Address = customer.Address;
+        _eventPublisher.PublishCustomerUpdatedAsync(id, customer.Name, customer.ContactName, customer.Phone, customer.Email, customer.Address).Wait();
     }
 
     public void Delete(int id)
@@ -37,6 +42,7 @@ public class CustomerService
         if (customer != null)
         {
             _customers.Remove(customer);
+            _eventPublisher.PublishCustomerDeletedAsync(id, customer.Name).Wait();
         }
     }
 }

@@ -2,6 +2,9 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Microsoft.Extensions.Options;
 using ERPBlazorApp.RabbitMQ.Configuration;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace ERPBlazorApp.RabbitMQ.Services;
 
@@ -12,6 +15,12 @@ public class RabbitMQService : IDisposable
     private IConnection? _connection;
     private IModel? _channel;
     private bool _disposed;
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        ReferenceHandler = ReferenceHandler.Preserve
+    };
 
     public RabbitMQService(IOptions<RabbitMQConfiguration> config)
     {
@@ -37,12 +46,20 @@ public class RabbitMQService : IDisposable
             _channel = _connection.CreateModel();
 
             _channel.ExchangeDeclare("erp-blazor", ExchangeType.Topic, durable: true);
-            _channel.QueueDeclare("erp-blazor-sales", durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare("erp-blazor-aaa", durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare("erp-blazor-accounting", durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare("erp-blazor-crm", durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare("erp-blazor-hr", durable: true, exclusive: false, autoDelete: false);
             _channel.QueueDeclare("erp-blazor-inventory", durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare("erp-blazor-sales", durable: true, exclusive: false, autoDelete: false);
             _channel.QueueDeclare("erp-blazor-notifications", durable: true, exclusive: false, autoDelete: false);
 
-            _channel.QueueBind("erp-blazor-sales", "erp-blazor", "sales.*");
+            _channel.QueueBind("erp-blazor-aaa", "erp-blazor", "aaa.*");
+            _channel.QueueBind("erp-blazor-accounting", "erp-blazor", "accounting.*");
+            _channel.QueueBind("erp-blazor-crm", "erp-blazor", "crm.*");
+            _channel.QueueBind("erp-blazor-hr", "erp-blazor", "hr.*");
             _channel.QueueBind("erp-blazor-inventory", "erp-blazor", "inventory.*");
+            _channel.QueueBind("erp-blazor-sales", "erp-blazor", "sales.*");
             _channel.QueueBind("erp-blazor-notifications", "erp-blazor", "notification.*");
 
             _logger.Information("RabbitMQ connection established successfully");
@@ -54,7 +71,7 @@ public class RabbitMQService : IDisposable
         }
     }
 
-    public async Task PublishAsync(string routingKey, string message, string? exchange = "erp-blazor")
+    public async Task PublishAsync<T>(string routingKey, T eventData, string? exchange = "erp-blazor") where T : class
     {
         if (_channel == null || _connection == null || !_connection.IsOpen)
         {
@@ -62,12 +79,15 @@ public class RabbitMQService : IDisposable
             InitializeRabbitMQ();
         }
 
+        var message = JsonSerializer.Serialize(eventData, _jsonOptions);
         var body = System.Text.Encoding.UTF8.GetBytes(message);
 
         var properties = _channel!.CreateBasicProperties();
         properties.Persistent = true;
         properties.MessageId = Guid.NewGuid().ToString();
         properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        properties.ContentType = "application/json";
+        properties.Type = typeof(T).Name;
 
         _channel.BasicPublish(
             exchange: exchange,
@@ -76,7 +96,7 @@ public class RabbitMQService : IDisposable
             body: body);
 
         await Task.CompletedTask;
-        _logger.Information("Message published to {RoutingKey}: {Message}", routingKey, message);
+        _logger.Information("Event published to {RoutingKey}: {EventType}", routingKey, typeof(T).Name);
     }
 
     public void StartConsuming(string queueName, Func<string, Task> onMessageReceived)

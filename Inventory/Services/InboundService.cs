@@ -1,4 +1,5 @@
 using ERPBlazorApp.Inventory.Models;
+using ERPBlazorApp.RabbitMQ.Services;
 
 namespace ERPBlazorApp.Inventory.Services;
 
@@ -8,9 +9,11 @@ public class InboundService
     private List<InboundDetail> _details;
     private List<Product> _products;
     private List<Supplier> _suppliers;
+    private readonly EventPublisher _eventPublisher;
 
-    public InboundService()
+    public InboundService(EventPublisher eventPublisher)
     {
+        _eventPublisher = eventPublisher;
         _suppliers = InventorySampleData.GetSuppliers();
         _products = InventorySampleData.GetProducts();
         _inbounds = InventorySampleData.GetInbounds();
@@ -54,6 +57,9 @@ public class InboundService
                 product.CurrentStock += detail.Quantity;
             }
         }
+
+        var supplierName = inbound.Supplier?.Name ?? string.Empty;
+        _eventPublisher.PublishInboundCreatedAsync(inbound.Id, inbound.SupplierId, supplierName, inbound.Date, inbound.Status, inbound.Details.Count).Wait();
     }
 
     public void Update(int id, Inbound inbound)

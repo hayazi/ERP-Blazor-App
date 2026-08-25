@@ -1,13 +1,16 @@
 using ERPBlazorApp.Inventory.Models;
+using ERPBlazorApp.RabbitMQ.Services;
 
 namespace ERPBlazorApp.Inventory.Services;
 
 public class SupplierService
 {
     private List<Supplier> _suppliers;
+    private readonly EventPublisher _eventPublisher;
 
-    public SupplierService()
+    public SupplierService(EventPublisher eventPublisher)
     {
+        _eventPublisher = eventPublisher;
         _suppliers = InventorySampleData.GetSuppliers();
     }
 
@@ -18,6 +21,7 @@ public class SupplierService
     {
         supplier.Id = _suppliers.Any() ? _suppliers.Max(s => s.Id) + 1 : 1;
         _suppliers.Add(supplier);
+        _eventPublisher.PublishSupplierCreatedAsync(supplier.Id, supplier.Name, supplier.ContactName, supplier.Phone, supplier.Email).Wait();
     }
 
     public void Update(int id, Supplier supplier)
@@ -29,6 +33,7 @@ public class SupplierService
         existing.Phone = supplier.Phone;
         existing.Email = supplier.Email;
         existing.Address = supplier.Address;
+        _eventPublisher.PublishSupplierUpdatedAsync(id, supplier.Name, supplier.ContactName, supplier.Phone, supplier.Email).Wait();
     }
 
     public void Delete(int id)
@@ -37,6 +42,7 @@ public class SupplierService
         if (supplier != null)
         {
             _suppliers.Remove(supplier);
+            _eventPublisher.PublishSupplierDeletedAsync(id, supplier.Name).Wait();
         }
     }
 }

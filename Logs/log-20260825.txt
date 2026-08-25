@@ -2475,3 +2475,24 @@ System.Text.Json.JsonException: A possible object cycle was detected. This can e
 [11:32:05 INF] Server rnd-01:37068:f3b97b38 all the dispatchers started
 [11:32:08 WRN] Failed to determine the https port for redirect.
 [11:32:14 INF] Retrieved 1 root departments
+[11:40:59 INF] Server rnd-01:37068:f3b97b38 caught stopping signal...
+[11:40:59 INF] Server rnd-01:37068:f3b97b38 All dispatchers stopped
+[11:40:59 INF] Server rnd-01:37068:f3b97b38 successfully reported itself as stopped in 2 12 ms
+[11:40:59 INF] Server rnd-01:37068:f3b97b38 has been stopped in total 13 0301 ms
+[12:10:59 INF] Start installing Hangfire SQL objects...
+[12:10:59 INF] Hangfire SQL objects installed.
+[12:11:00 INF] Starting Hangfire Server using job storage: 'SQL Server: .@ERPBlazorDb'
+[12:11:00 INF] Using the following options for SQL Server job storage: Queue poll interval: 00:00:00.
+[12:11:00 INF] Using the following options for Hangfire Server:
+    Worker count: 60
+    Listening queues: 'default', 'sales', 'inventory', 'accounting'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+[12:11:00 INF] Server rnd-01:14840:db68a56a successfully announced in 6 8641 ms
+[12:11:00 INF] Server rnd-01:14840:db68a56a is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, SqlServerHeartbeatProcess, Worker, DelayedJobScheduler, RecurringJobScheduler...
+[12:11:01 INF] Server rnd-01:14840:db68a56a all the dispatchers started
+[12:11:01 WRN] Failed to determine the https port for redirect.
+[12:11:01 INF] RabbitMQ connection established successfully
+[12:11:28 INF] Updating employee 1
+[12:11:28 INF] Event published to hr.employee.updated: EmployeeUpdatedEvent
+[12:11:28 INF] Employee 1 updated successfully

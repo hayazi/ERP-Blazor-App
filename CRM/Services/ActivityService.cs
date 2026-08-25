@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.CRM.Models;
 using ERPBlazorApp.CRM.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.CRM.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.CRM.Services;
 public class ActivityService
 {
     private readonly CRMDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<ActivityService>();
 
-    public ActivityService(CRMDbContext context)
+    public ActivityService(CRMDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Activity>> GetAllAsync()
@@ -38,6 +41,7 @@ public class ActivityService
         Logger.Information("Adding activity {ActivitySubject}", activity.Subject);
         _context.Activities.Add(activity);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishActivityCreatedAsync(activity.Id, activity.Type, activity.Subject, activity.DueDate, activity.Status);
         Logger.Information("Activity added with id {ActivityId}", activity.Id);
     }
 
@@ -59,6 +63,7 @@ public class ActivityService
         existing.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishActivityUpdatedAsync(id, activity.Type, activity.Subject, activity.DueDate, activity.Status);
         Logger.Information("Activity {ActivityId} updated successfully", id);
     }
 
@@ -70,6 +75,7 @@ public class ActivityService
         {
             _context.Activities.Remove(activity);
             await _context.SaveChangesAsync();
+            await _eventPublisher.PublishActivityDeletedAsync(id, activity.Subject);
             Logger.Information("Activity {ActivityId} deleted", id);
         }
     }

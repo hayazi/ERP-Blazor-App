@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.Accounting.Models;
 using ERPBlazorApp.Accounting.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.Accounting.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.Accounting.Services;
 public class BudgetService
 {
     private readonly AccountingDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<BudgetService>();
 
-    public BudgetService(AccountingDbContext context)
+    public BudgetService(AccountingDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Budget>> GetAllAsync()
@@ -36,6 +39,7 @@ public class BudgetService
         Logger.Information("Adding budget for account {AccountId}", budget.AccountId);
         _context.Budgets.Add(budget);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishBudgetCreatedAsync(budget.Id, budget.AccountId, budget.Amount, budget.FiscalYearId ?? 0, budget.AccountingPeriodId ?? 0);
         Logger.Information("Budget added with id {BudgetId}", budget.Id);
     }
 
@@ -52,6 +56,7 @@ public class BudgetService
         existing.Type = budget.Type;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishBudgetUpdatedAsync(id, budget.AccountId, budget.Amount, budget.FiscalYearId ?? 0, budget.AccountingPeriodId ?? 0);
         Logger.Information("Budget {BudgetId} updated successfully", id);
     }
 

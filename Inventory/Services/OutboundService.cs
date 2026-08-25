@@ -1,4 +1,5 @@
 using ERPBlazorApp.Inventory.Models;
+using ERPBlazorApp.RabbitMQ.Services;
 
 namespace ERPBlazorApp.Inventory.Services;
 
@@ -8,9 +9,11 @@ public class OutboundService
     private List<OutboundDetail> _details;
     private List<Product> _products;
     private List<Customer> _customers;
+    private readonly EventPublisher _eventPublisher;
 
-    public OutboundService()
+    public OutboundService(EventPublisher eventPublisher)
     {
+        _eventPublisher = eventPublisher;
         _customers = InventorySampleData.GetCustomers();
         _products = InventorySampleData.GetProducts();
         _outbounds = InventorySampleData.GetOutbounds();
@@ -54,6 +57,9 @@ public class OutboundService
                 product.CurrentStock -= detail.Quantity;
             }
         }
+
+        var customerName = outbound.Customer?.Name ?? string.Empty;
+        _eventPublisher.PublishOutboundCreatedAsync(outbound.Id, outbound.CustomerId, customerName, outbound.Date, outbound.Status, outbound.Details.Count).Wait();
     }
 
     public void Update(int id, Outbound outbound)

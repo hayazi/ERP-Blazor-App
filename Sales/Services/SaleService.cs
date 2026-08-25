@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.Sales.Models;
 using ERPBlazorApp.Sales.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.Sales.Services;
@@ -8,11 +9,13 @@ namespace ERPBlazorApp.Sales.Services;
 public class SaleService
 {
     private readonly SaleDbContext _context;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<SaleService>();
 
-    public SaleService(SaleDbContext context)
+    public SaleService(SaleDbContext context, EventPublisher eventPublisher)
     {
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Sale>> GetAllAsync()
@@ -52,6 +55,7 @@ public class SaleService
         sale.SaleDate = DateTime.Now;
         _context.Sales.Add(sale);
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishSaleCreatedAsync(sale.Id, sale.InvoiceNumber, sale.SaleDate, sale.CustomerName ?? string.Empty, sale.SubTotal, sale.TaxAmount, sale.DiscountAmount, sale.TotalAmount, sale.Status, sale.Items.Count);
         Logger.Information("Sale added with id {SaleId}", sale.Id);
     }
 
@@ -77,6 +81,7 @@ public class SaleService
         existing.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
+        await _eventPublisher.PublishSaleUpdatedAsync(id, sale.InvoiceNumber, sale.SaleDate, sale.CustomerName ?? string.Empty, sale.SubTotal, sale.TaxAmount, sale.DiscountAmount, sale.TotalAmount, sale.Status);
         Logger.Information("Sale {SaleId} updated successfully", id);
     }
 
@@ -88,6 +93,7 @@ public class SaleService
         {
             _context.Sales.Remove(sale);
             await _context.SaveChangesAsync();
+            await _eventPublisher.PublishSaleDeletedAsync(id, sale.InvoiceNumber);
             Logger.Information("Sale {SaleId} deleted", id);
         }
     }

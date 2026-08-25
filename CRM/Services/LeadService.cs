@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.CRM.Models;
 using ERPBlazorApp.CRM.Data;
 using ERPBlazorApp.Data;
+using ERPBlazorApp.RabbitMQ.Services;
 using Serilog;
 
 namespace ERPBlazorApp.CRM.Services;
@@ -10,12 +11,14 @@ public class LeadService
 {
     private readonly CRMDbContext _context;
     private readonly CacheService _cache;
+    private readonly EventPublisher _eventPublisher;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<LeadService>();
 
-    public LeadService(CRMDbContext context, CacheService cache)
+    public LeadService(CRMDbContext context, CacheService cache, EventPublisher eventPublisher)
     {
         _context = context;
         _cache = cache;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<Lead>> GetAllAsync()
@@ -42,6 +45,7 @@ public class LeadService
         _context.Leads.Add(lead);
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("leads:all");
+        await _eventPublisher.PublishLeadCreatedAsync(lead.Id, lead.FirstName, lead.LastName, lead.Email, lead.Phone, lead.Company, lead.Status, lead.Source);
         Logger.Information("Lead added with id {LeadId}", lead.Id);
     }
 
@@ -64,6 +68,7 @@ public class LeadService
 
         await _context.SaveChangesAsync();
         await _cache.RemoveAsync("leads:all");
+        await _eventPublisher.PublishLeadUpdatedAsync(id, lead.FirstName, lead.LastName, lead.Email, lead.Phone, lead.Company, lead.Status, lead.Source);
         Logger.Information("Lead {LeadId} updated successfully", id);
     }
 
@@ -76,6 +81,7 @@ public class LeadService
             _context.Leads.Remove(lead);
             await _context.SaveChangesAsync();
             await _cache.RemoveAsync("leads:all");
+            await _eventPublisher.PublishLeadDeletedAsync(id, lead.Email);
             Logger.Information("Lead {LeadId} deleted", id);
         }
     }
