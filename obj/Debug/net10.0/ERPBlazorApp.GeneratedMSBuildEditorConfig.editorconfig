@@ -38,6 +38,10 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXEFjY291bnRzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/app/ERP-Blazor-App/AAA/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXExvZ2luLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/app/ERP-Blazor-App/AAA/Pages/Permissions.razor]
 build_metadata.AdditionalFiles.TargetPath = QUFBXFBhZ2VzXFBlcm1pc3Npb25zLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

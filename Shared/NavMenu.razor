@@ -1,5 +1,6 @@
 ﻿@using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResource> L
+@inject ERPBlazorApp.AAA.Auth.AuthService AuthService
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -160,6 +161,23 @@
                 </div>
             </div>
         </div>
+        <div class="nav-item px-3 mt-3">
+            @if (AuthService.IsAuthenticated)
+            {
+                <div class="d-flex align-items-center">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Class="me-2" Size="Size.Small" />
+                    <span>@AuthService.CurrentUser?.Username</span>
+                    <MudSpacer />
+                    <MudIconButton Icon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Error" OnClick="HandleLogout" Title="Logout" />
+                </div>
+            }
+            else
+            {
+                <NavLink class="nav-link" href="login">
+                    <span class="oi oi-person" aria-hidden="true"></span> @if (!Collapsed) { <span>Login</span> }
+                </NavLink>
+            }
+        </div>
     </nav>
 </div>
 
@@ -218,5 +236,20 @@
     private void ToggleAccountingSubMenu()
     {
         collapseAccountingSubMenu = !collapseAccountingSubMenu;
+    }
+
+    private void HandleLogout()
+    {
+        AuthService.Logout();
+    }
+
+    protected override void OnInitialized()
+    {
+        AuthService.OnAuthStateChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= StateHasChanged;
     }
 }
