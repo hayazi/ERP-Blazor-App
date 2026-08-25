@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.CRM.Models;
 using ERPBlazorApp.CRM.Data;
+using ERPBlazorApp.Data;
 using Serilog;
 
 namespace ERPBlazorApp.CRM.Services;
@@ -8,17 +9,25 @@ namespace ERPBlazorApp.CRM.Services;
 public class LeadService
 {
     private readonly CRMDbContext _context;
+    private readonly CacheService _cache;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<LeadService>();
 
-    public LeadService(CRMDbContext context)
+    public LeadService(CRMDbContext context, CacheService cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     public async Task<List<Lead>> GetAllAsync()
     {
         Logger.Debug("Fetching all leads");
-        return await _context.Leads.ToListAsync();
+        var cacheKey = "leads:all";
+        var cached = await _cache.GetAsync<List<Lead>>(cacheKey);
+        if (cached != null) return cached;
+
+        var leads = await _context.Leads.ToListAsync();
+        await _cache.SetAsync(cacheKey, leads);
+        return leads;
     }
 
     public async Task<Lead?> GetByIdAsync(int id)
@@ -32,6 +41,7 @@ public class LeadService
         Logger.Information("Adding lead {LeadEmail}", lead.Email);
         _context.Leads.Add(lead);
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("leads:all");
         Logger.Information("Lead added with id {LeadId}", lead.Id);
     }
 
@@ -53,6 +63,7 @@ public class LeadService
         existing.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("leads:all");
         Logger.Information("Lead {LeadId} updated successfully", id);
     }
 
@@ -64,6 +75,7 @@ public class LeadService
         {
             _context.Leads.Remove(lead);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("leads:all");
             Logger.Information("Lead {LeadId} deleted", id);
         }
     }

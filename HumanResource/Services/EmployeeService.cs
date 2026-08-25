@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.HumanResource.Models;
 using ERPBlazorApp.HumanResource.Data;
+using ERPBlazorApp.Data;
 using Serilog;
 
 namespace ERPBlazorApp.HumanResource.Services;
@@ -8,19 +9,28 @@ namespace ERPBlazorApp.HumanResource.Services;
 public class EmployeeService
 {
     private readonly HumanResourceDbContext _context;
+    private readonly CacheService _cache;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<EmployeeService>();
 
-    public EmployeeService(HumanResourceDbContext context)
+    public EmployeeService(HumanResourceDbContext context, CacheService cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     public async Task<List<Employee>> GetAllAsync()
     {
         Logger.Debug("Fetching all employees");
-        return await _context.Employees
+        var cacheKey = "employees:all";
+        var cached = await _cache.GetAsync<List<Employee>>(cacheKey);
+        if (cached != null) return cached;
+
+        var employees = await _context.Employees
             .Include(e => e.Department)
             .ToListAsync();
+
+        await _cache.SetAsync(cacheKey, employees);
+        return employees;
     }
 
     public async Task<Employee?> GetByIdAsync(int id)
@@ -37,6 +47,7 @@ public class EmployeeService
         employee.Department = await _context.Departments.FindAsync(employee.DepartmentId);
         _context.Employees.Add(employee);
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("employees:all");
         Logger.Information("Employee added with id {EmployeeId}", employee.Id);
     }
 
@@ -58,6 +69,7 @@ public class EmployeeService
         existing.IsActive = employee.IsActive;
 
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("employees:all");
         Logger.Information("Employee {EmployeeId} updated successfully", id);
     }
 
@@ -69,6 +81,7 @@ public class EmployeeService
         {
             _context.Employees.Remove(employee);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("employees:all");
             Logger.Information("Employee {EmployeeId} deleted", id);
         }
     }

@@ -75,6 +75,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("redis");
     options.InstanceName = "ERPBlazorApp:";
 });
+builder.Services.AddScoped<ERPBlazorApp.Data.CacheService>();
 builder.Services.AddScoped<ERPBlazorApp.HumanResource.Services.EmployeeService>();
 builder.Services.AddScoped<ERPBlazorApp.HumanResource.Services.DepartmentService>();
 builder.Services.AddScoped<ERPBlazorApp.Inventory.Services.ProductService>();

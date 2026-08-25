@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.Accounting.Models;
 using ERPBlazorApp.Accounting.Data;
+using ERPBlazorApp.Data;
 using Serilog;
 
 namespace ERPBlazorApp.Accounting.Services;
@@ -8,20 +9,29 @@ namespace ERPBlazorApp.Accounting.Services;
 public class ChartOfAccountService
 {
     private readonly AccountingDbContext _context;
+    private readonly CacheService _cache;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<ChartOfAccountService>();
 
-    public ChartOfAccountService(AccountingDbContext context)
+    public ChartOfAccountService(AccountingDbContext context, CacheService cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     public async Task<List<ChartOfAccount>> GetAllAsync()
     {
         Logger.Debug("Fetching all chart of accounts");
-        return await _context.ChartOfAccounts
+        var cacheKey = "chartofaccounts:all";
+        var cached = await _cache.GetAsync<List<ChartOfAccount>>(cacheKey);
+        if (cached != null) return cached;
+
+        var accounts = await _context.ChartOfAccounts
             .Include(c => c.ParentAccount)
             .Include(c => c.ChildAccounts)
             .ToListAsync();
+
+        await _cache.SetAsync(cacheKey, accounts);
+        return accounts;
     }
 
     public async Task<ChartOfAccount?> GetByIdAsync(int id)
@@ -37,6 +47,7 @@ public class ChartOfAccountService
         Logger.Information("Adding chart of account {AccountCode}", account.Code);
         _context.ChartOfAccounts.Add(account);
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("chartofaccounts:all");
         Logger.Information("Chart of account added with id {AccountId}", account.Id);
     }
 
@@ -54,6 +65,7 @@ public class ChartOfAccountService
         existing.CurrentBalance = account.CurrentBalance;
 
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("chartofaccounts:all");
         Logger.Information("Chart of account {AccountId} updated successfully", id);
     }
 
@@ -65,6 +77,7 @@ public class ChartOfAccountService
         {
             _context.ChartOfAccounts.Remove(account);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("chartofaccounts:all");
             Logger.Information("Chart of account {AccountId} deleted", id);
         }
     }

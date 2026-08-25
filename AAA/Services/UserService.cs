@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ERPBlazorApp.AAA.Models;
 using ERPBlazorApp.AAA.Data;
+using ERPBlazorApp.Data;
 using Serilog;
 
 namespace ERPBlazorApp.AAA.Services;
@@ -8,20 +9,29 @@ namespace ERPBlazorApp.AAA.Services;
 public class UserService
 {
     private readonly AAADbContext _context;
+    private readonly CacheService _cache;
     private static readonly Serilog.ILogger Logger = Serilog.Log.ForContext<UserService>();
 
-    public UserService(AAADbContext context)
+    public UserService(AAADbContext context, CacheService cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     public async Task<List<User>> GetAllAsync()
     {
         Logger.Debug("Fetching all users");
-        return await _context.Users
+        var cacheKey = "users:all";
+        var cached = await _cache.GetAsync<List<User>>(cacheKey);
+        if (cached != null) return cached;
+
+        var users = await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .ToListAsync();
+
+        await _cache.SetAsync(cacheKey, users);
+        return users;
     }
 
     public async Task<User?> GetByIdAsync(int id)
@@ -47,6 +57,7 @@ public class UserService
         Logger.Information("Adding user {Username}", user.Username);
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("users:all");
         Logger.Information("User added with id {UserId}", user.Id);
     }
 
@@ -67,6 +78,7 @@ public class UserService
         }
 
         await _context.SaveChangesAsync();
+        await _cache.RemoveAsync("users:all");
         Logger.Information("User {UserId} updated successfully", id);
     }
 
@@ -78,6 +90,7 @@ public class UserService
         {
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync("users:all");
             Logger.Information("User {UserId} deleted", id);
         }
     }

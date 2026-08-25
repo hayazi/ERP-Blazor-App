@@ -16,6 +16,39 @@
 >
 > - Used **RabbitMQ** as ***Message Broker*** for async communication
 
+## Caching (Redis)
+
+The application uses Redis for distributed caching to improve performance for frequently accessed data:
+
+### Cached Entities
+
+The following entities are cached using Redis:
+- **Users** - User list with roles (`users:all`)
+- **Chart of Accounts** - Account list with parent/child relationships (`chartofaccounts:all`)
+- **Leads** - Lead list (`leads:all`)
+- **Employees** - Employee list with departments (`employees:all`)
+
+### Cache Strategy
+
+- **Cache Key Pattern**: `{entity}:all`
+- **Expiration**: 30 minutes absolute expiration by default
+- **Invalidation**: Cache is automatically invalidated on Add, Update, or Delete operations
+- **Service**: `CacheService` wraps `IDistributedCache` with JSON serialization
+
+### Cache Service Usage
+
+```csharp
+// Get from cache
+var cached = await _cache.GetAsync<List<User>>("users:all");
+if (cached != null) return cached;
+
+// Set cache
+await _cache.SetAsync("users:all", users);
+
+// Remove from cache
+await _cache.RemoveAsync("users:all");
+```
+
 ## Message Queue (RabbitMQ)
 
 The application uses RabbitMQ for asynchronous messaging between modules:
